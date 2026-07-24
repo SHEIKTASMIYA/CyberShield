@@ -213,8 +213,12 @@
       const token = await user.getIdToken();
       const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
+      const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : 'https://cybershield-backend-3hs4.onrender.com';
+
       try {
-        await fetch('http://localhost:5000/api/auth/register', {
+        await fetch(`${API_URL}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ email, name, role: selectedRole, org })
