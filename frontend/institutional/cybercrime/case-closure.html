@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Closure — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="case-closure">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="breadcrumbs"><a href="all-cases.html">All Cases</a><span class="sep">/</span><span class="current">Case Closure</span></div>
+      <div class="page-head"><div><h2 class="mono" id="closeCaseTitle">Close Case</h2><p id="closeCaseSubtitle"></p></div></div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:18px;">Closure Details</h5>
+          <div class="field"><label>Closure reason</label>
+            <select class="select input" id="closureReason"><option>Recovered — funds fully returned</option><option>Recovered — funds partially returned</option><option>Resolved without recovery</option><option>Insufficient evidence</option><option>Referred to another jurisdiction</option></select>
+          </div>
+          <div class="grid grid-2">
+            <div class="field"><label>Amount recovered</label><input class="input mono" id="recoveredAmount" value="₹0"></div>
+            <div class="field"><label>Closure date</label><input class="input" type="date" id="closureDate" value=""></div>
+          </div>
+          <div class="field"><label>Final investigation summary</label><textarea class="input" id="closureSummary" rows="5"></textarea></div>
+          <label class="flex items-center gap-2 text-sm" style="margin:8px 0 20px; color:var(--text-secondary);">
+            <input type="checkbox" id="closureConfirm" checked style="width:16px;height:16px;"> I confirm all evidence and audit records are finalized and locked.
+          </label>
+          <button class="btn btn-primary btn-lg" id="closeBtn">Close Case</button>
+        </div>
+        <div class="card card-pad" id="closureSummaryCard">
+          <h5 style="margin-bottom:14px;">Case Summary</h5>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Amount reported</span><span class="mono" id="reportedAmount">₹0</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Time to freeze</span><span>—</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Time to recovery</span><span>—</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0;"><span class="text-muted">Officer</span><span id="reportedOfficer">Officer</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>  CS_renderShell('cybercrime','case-closure',{pageTitle:'Case Closure'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeCaseId = params.get('caseId');
+  const c = CS_DATA.cases.find(x => x.id === activeCaseId) || CS_DATA.cases[0];
+
+  if (!c) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Close Case</h2>
+          <p>No active case selected for closure.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+        <h4>No case found</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          There are no reported cases matching this identifier to close.
+        </p>
+      </div>
+    `;
+  } else {
+    document.getElementById('closeCaseTitle').textContent = `Close Case ${c.id}`;
+    document.getElementById('closeCaseSubtitle').textContent = `${c.victim} · ${c.channel} Fraud · Status: ${c.status}`;
+    
+    document.getElementById('recoveredAmount').value = c.amount;
+    document.getElementById('closureDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('closureSummary').value = `Case ${c.id} closed. Investigation finalized. Funds frozen and returned.`;
+    
+    document.getElementById('reportedAmount').textContent = CS_DATA.fmtINR(c.amount);
+    document.getElementById('reportedOfficer').textContent = c.officer;
+
+    const closeBtn = document.getElementById('closeBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        const confirmCheck = document.getElementById('closureConfirm');
+        if (confirmCheck && !confirmCheck.checked) {
+          CS_toast('Confirmation Required', 'You must check the confirmation checkbox to close the case.', 'error');
+          return;
+        }
+
+        CS_DATA.closeCase(c.id);
+        CS_toast('Case closed', `${c.id} has been closed and archived`, 'success');
+        setTimeout(() => {
+          window.location.href = 'all-cases.html';
+        }, 1200);
+      });
+    }
+  }</script>
+</body>
+</html>

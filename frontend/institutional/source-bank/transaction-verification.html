@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Verification — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="transaction-verification">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Transaction Verification</h2><p>Look up any transaction by reference number, UPI ID, or account number.</p></div></div>
+
+      <div class="card card-pad" style="margin-bottom:var(--sp-6);">
+        <div class="flex gap-3">
+          <input class="input" placeholder="Enter UTR / UPI reference / account number…" style="flex:1;">
+          <button class="btn btn-primary">Search</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4>Recent Lookups</h4></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>UTR / Reference</th><th>Case</th><th>Amount</th><th>Channel</th><th>Match</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','transaction-verification',{pageTitle:'Transaction Verification'});
+  const user = CS_DATA.currentUser.sourceBank;
+  const orgName = user && user.org ? user.org : "HDFC Bank";
+  const orgCases = CS_DATA.cases.filter(c => c.sourceBank === orgName);
+
+  const body = document.getElementById('body');
+  if (orgCases.length === 0) {
+    body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    body.innerHTML = orgCases.slice(0,6).map((c,i)=>`
+      <tr>
+        <td class="mono text-sm">UTR${8800000+i*137}</td>
+        <td class="mono text-sm">${c.id}</td>
+        <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+        <td class="text-sm">${c.channel}</td>
+        <td><span class="chip chip-resolved">Verified</span></td>
+        <td><a href="complaint-verification.html?caseId=${c.id}" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View</a></td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Cases — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="all-cases">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>All Cases</h2><p>Every fraud case under Bengaluru East Cyber Cell jurisdiction.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary">Export CSV</button></div></div>
+
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search case ID, victim, UPI ID…"></div>
+        <select id="prioritySelect" class="select input" style="width:auto;"><option>All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+        <select id="statusSelect" class="select input" style="width:auto;"><option>All Statuses</option><option>Investigation</option><option>Freeze Requested</option><option>Funds Frozen</option><option>Resolved</option></select>
+        <select id="officerSelect" class="select input" style="width:auto;"><option>All Officers</option><option>Insp. Priya Nair</option><option>SI Rakesh Kumar</option><option>Unassigned</option></select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Case ID</th><th>Victim</th><th>Amount</th><th>Channel</th><th>Filed</th><th>Priority</th><th>Officer</th><th>Status</th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+        <div class="pagination"><span>Showing 1–8 of 37 cases</span><div class="page-btns"><span class="page-btn is-active">1</span><span class="page-btn">2</span><span class="page-btn">3</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','all-cases',{pageTitle:'All Cases'});
+
+  const user = CS_DATA.currentUser.cybercrime;
+  const orgName = user && user.org ? user.org : "Bengaluru East Cyber Cell";
+  document.querySelector('.page-head p').textContent = `Every fraud case under ${orgName} jurisdiction.`;
+
+  const searchInput = document.getElementById('searchInput');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const statusSelect = document.getElementById('statusSelect');
+  const officerSelect = document.getElementById('officerSelect');
+
+  function renderCases() {
+    const query = searchInput.value.toLowerCase().trim();
+    const priority = prioritySelect.value;
+    const status = statusSelect.value;
+    const officer = officerSelect.value;
+
+    const filtered = CS_DATA.cases.filter(c => {
+      const matchesSearch = c.id.toLowerCase().includes(query) || c.victim.toLowerCase().includes(query);
+      const matchesPriority = priority === "All Priorities" || c.priority === priority;
+      const matchesStatus = status === "All Statuses" || c.status === status;
+      const matchesOfficer = officer === "All Officers" || c.officer === officer;
+      return matchesSearch && matchesPriority && matchesStatus && matchesOfficer;
+    });
+
+    const body = document.getElementById('body');
+    const pagination = document.querySelector('.pagination');
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      if (pagination) pagination.style.display = 'none';
+      return;
+    }
+
+    if (pagination) {
+      pagination.style.display = 'flex';
+      pagination.querySelector('span').textContent = `Showing 1–${filtered.length} of ${filtered.length} cases`;
+    }
+
+    body.innerHTML = filtered.map(c => `
+      <tr class="row-link" onclick="window.location.href='investigation-timeline.html?caseId=${c.id}'">
+        <td class="mono text-sm">${c.id}</td>
+        <td class="text-sm">${c.victim}</td>
+        <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+        <td class="text-sm">${c.channel}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(c.filedOn).split(' · ')[0]}</td>
+        <td>${CS_priorityChip(c.priority)}</td>
+        <td class="text-sm">${c.officer}</td>
+        <td>${CS_chip(c.status)}</td>
+      </tr>
+    `).join('');
+  }
+
+  if (searchInput && prioritySelect && statusSelect && officerSelect) {
+    searchInput.addEventListener('input', renderCases);
+    prioritySelect.addEventListener('change', renderCases);
+    statusSelect.addEventListener('change', renderCases);
+    officerSelect.addEventListener('change', renderCases);
+  }
+
+  renderCases();
+</script>
+</body>
+</html>

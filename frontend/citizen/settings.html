@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>
+.switch{ width:44px; height:26px; border-radius:var(--r-full); background:var(--border-strong); position:relative; cursor:pointer; flex:0 0 auto; }
+.switch.on{ background:var(--accent); }
+.switch::after{ content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:transform .15s ease; }
+.switch.on::after{ transform:translateX(18px); }
+</style>
+</head>
+<body data-page="settings">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head"><div><h2>Settings</h2><p>Manage your notification preferences and account security.</p></div></div>
+
+      <div class="card card-pad" style="margin-bottom:var(--sp-6);">
+        <div class="setting-header">
+          <span class="setting-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </span>
+          <h4>Notifications</h4>
+        </div>
+        <p class="text-sm text-secondary" style="margin-bottom:12px;">Choose how you'd like to be notified about case updates.</p>
+        
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 3a2 2 0 0 1-.4 2.1L8 10.2a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c1 .4 2 .6 3 .7a2 2 0 0 1 1.5 2Z"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">SMS alerts</strong>
+              <p class="text-xs text-muted">Freeze approvals & critical updates</p>
+            </div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Email updates</strong>
+              <p class="text-xs text-muted">Weekly case summaries</p>
+            </div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Push notifications</strong>
+              <p class="text-xs text-muted">Real-time via mobile app</p>
+            </div>
+          </div>
+          <div class="switch" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <div class="setting-header">
+          <span class="setting-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg>
+          </span>
+          <h4>Security</h4>
+        </div>
+        <p class="text-sm text-secondary" style="margin-bottom:16px;">Keep your account protected.</p>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Two-factor authentication</strong>
+              <p class="text-xs text-muted">Enabled via SMS OTP</p>
+            </div>
+          </div>
+          <span class="chip chip-resolved">Active</span>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 7.7-7.7 2 2M16 5l3 3"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Change password</strong>
+              <p class="text-xs text-muted">Last changed 42 days ago</p>
+            </div>
+          </div>
+          <a href="../auth/forgot-password.html" class="btn btn-sm btn-secondary">Change</a>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </span>
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Active sessions</strong>
+              <p class="text-xs text-muted">2 devices signed in</p>
+            </div>
+          </div>
+        <div class="card card-pad" style="margin-top:var(--sp-6);">
+        <div class="setting-header">
+          <span class="setting-icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20M4.9 6.9l14.2 10.2M19.1 6.9 4.9 17.1M2 12h20"/></svg>
+          </span>
+          <h4>Connected Web3 Wallet (Petra Aptos Testnet)</h4>
+        </div>
+        <p class="text-sm text-secondary" style="margin-bottom:16px;">Link your Petra wallet account to automatically monitor transactions and trigger fraud alerts.</p>
+
+        <div class="setting-row">
+          <div class="setting-row-main" style="flex:1;">
+            <div class="setting-row-text" style="width:100%;">
+              <strong style="font-size:13.5px;">Monitored Account Address</strong>
+              <div style="margin-top:6px;" class="flex gap-2">
+                <input class="input mono" id="settingsPetraAddr" style="font-size:12.5px;" value="0xadd0930cbc134d4a54706f240b9dc5bec92c38d9022126825dfcc65da2ed7ad0">
+                <button class="btn btn-secondary btn-sm" onclick="savePetraAddr()">Save Address</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-row-main">
+            <div class="setting-row-text">
+              <strong style="font-size:13.5px;">Real-Time Outgoing Transfer Alert</strong>
+              <p class="text-xs text-muted">Triggers pop-up alert &amp; notification on any outgoing Aptos Testnet transaction</p>
+            </div>
+          </div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div class="flex gap-3" style="margin-top:16px;">
+          <button class="btn btn-secondary btn-sm" onclick="CS_PETRA.triggerTestAlert()">⚡ Test Outgoing Alert Popup</button>
+          <button class="btn btn-secondary btn-sm" onclick="CS_PETRA.connectPetra()">🔗 Connect Petra Extension</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/petra-wallet-tracker.js"></script>
+<script>
+  CS_renderShell('citizen','settings',{pageTitle:'Settings'});
+
+  if (window.CS_PETRA) {
+    document.getElementById('settingsPetraAddr').value = CS_PETRA.getAddress();
+  }
+
+  function savePetraAddr() {
+    const val = document.getElementById('settingsPetraAddr').value.trim();
+    if (val && window.CS_PETRA) {
+      CS_PETRA.setAddress(val);
+      if (window.CS_toast) window.CS_toast("Petra Address Updated", `Monitored address set to ${val.substring(0,10)}...`, "success");
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assign Officer — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.officer-card{ display:flex; align-items:center; gap:14px; padding:16px; border:1px solid var(--border); border-radius:var(--r-lg); }
+.load-bar{ width:60px; height:6px; border-radius:var(--r-full); background:var(--surface-sunken); overflow:hidden; }
+.load-bar span{ display:block; height:100%; background:var(--accent); }
+</style>
+</head>
+<body data-page="assign-officer">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Assign Officer</h2><p>Assign or reassign unassigned cases to available investigating officers.</p></div></div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">Unassigned Cases</h5>
+          <div id="unassigned" class="flex-col gap-3"></div>
+        </div>
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">Officer Availability</h5>
+          <div class="flex-col gap-3" id="officersList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','assign-officer',{pageTitle:'Assign Officer'});
+
+  const officers = [
+    { name: "Insp. Priya Nair", initials: "PN", base: "Bengaluru East" },
+    { name: "SI Rakesh Kumar", initials: "RK", base: "Chennai Central" },
+    { name: "SI Anjali Verma", initials: "AV", base: "Hyderabad West" }
+  ];
+
+  function renderOfficers() {
+    const list = document.getElementById('officersList');
+    if (list) {
+      list.innerHTML = officers.map(o => {
+        const activeCount = CS_DATA.cases.filter(c => c.officer === o.name && c.status !== "Resolved" && c.status !== "Closed").length;
+        const pct = Math.min(100, Math.max(10, activeCount * 7));
+        return `
+          <div class="officer-card">
+            <span class="avatar">${o.initials}</span>
+            <div style="flex:1;">
+              <strong style="font-size:13.5px;">${o.name}</strong>
+              <div class="text-xs text-muted">${o.base} · ${activeCount} active cases</div>
+            </div>
+            <div class="load-bar"><span style="width:${pct}%;"></span></div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  function renderUnassigned() {
+    document.getElementById('unassigned').innerHTML = CS_DATA.cases.filter(c=>c.officer==='Unassigned').map(c=>`
+      <div class="flex items-center justify-between" style="padding:12px 14px; border:1px solid var(--border); border-radius:var(--r-md);">
+        <div><strong class="mono" style="font-size:13px;">${c.id}</strong><div class="text-xs text-muted">${c.victim} · ${CS_DATA.fmtINR(c.amount)}</div></div>
+        <select class="select input" style="width:auto; height:34px;" data-case="${c.id}" onchange="if(this.value) { CS_DATA.assignCaseOfficer(this.dataset.case, this.value); CS_toast('Officer assigned', this.dataset.case+' assigned to '+this.value); renderUnassigned(); renderOfficers(); }">
+          <option value="">Assign to…</option>
+          ${officers.map(o => `<option>${o.name}</option>`).join('')}
+        </select>
+      </div>`).join('') || '<div class="text-center text-muted" style="padding:24px 0;">No unassigned cases right now.</div>';
+  }
+
+  renderOfficers();
+  renderUnassigned();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigation Timeline — CC-2026-08841 — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; } .kv:last-child{border-bottom:none;} .kv span:first-child{color:var(--text-muted);}</style>
+</head>
+<body data-page="investigation-timeline">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="breadcrumbs"><a href="all-cases.html">All Cases</a><span class="sep">/</span><span class="current" id="breadcrumbCaseId">CC-2026-08841</span></div>
+      <div class="page-head">
+        <div><div class="flex items-center gap-3"><h2 class="mono" id="caseTitle" style="font-size:24px;">CC-2026-08841</h2><span class="chip" id="priorityChip">Critical</span><span class="chip" id="statusChip">Investigation</span></div><p id="caseSub">Rohit Malhotra · UPI Fraud · Bengaluru East</p></div>
+        <div class="page-actions">
+          <a href="../cybercrime/fraud-network-graph.html" class="btn btn-secondary">View Network</a>
+          <a href="case-closure.html" id="closureLink" class="btn btn-primary">Move to Closure</a>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a class="tab is-active" data-tab="timeline">Timeline</a>
+        <a class="tab" data-tab="evidence">Evidence</a>
+        <a class="tab" data-tab="actions">Institution Actions</a>
+        <a class="tab" data-tab="notes">Notes & Audit</a>
+      </div>
+
+      <div class="tab-panel" id="tab-timeline">
+        <div class="grid" style="grid-template-columns:2fr 1fr;">
+          <div class="card card-pad"><div class="timeline" id="tl"></div></div>
+          <div class="card card-pad" id="caseFactsCard">
+            <h5 style="margin-bottom:14px;">Case Facts</h5>
+            <div class="kv"><span>Amount</span><span class="mono" id="factAmount">₹0</span></div>
+            <div class="kv"><span>Source Bank</span><span id="factSourceBank">Bank</span></div>
+            <div class="kv"><span>Destination Bank</span><span id="factDestBank">Bank</span></div>
+            <div class="kv"><span>Telecom</span><span id="factTelecom">Telecom</span></div>
+            <div class="kv"><span>Assigned Officer</span><span id="factOfficer">Officer</span></div>
+            <div class="field" style="margin-top:16px;"><label>Add case note</label><textarea class="input" rows="3" placeholder="Log an investigation note…"></textarea></div>
+            <button class="btn btn-secondary btn-block" data-toast-success="Note added to case file">Add Note</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-evidence" style="display:none;">
+        <div class="card card-pad" id="evList"></div>
+      </div>
+
+      <div class="tab-panel" id="tab-actions" style="display:none;">
+        <div class="card">
+          <div class="table-wrap" style="border:none; border-radius:0;">
+            <table class="data-table">
+              <thead><tr><th>Institution</th><th>Action</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody id="actionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-notes" style="display:none;">
+        <div class="card card-pad"><div class="timeline" id="audit"></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','investigation-timeline',{pageTitle:'Investigation Timeline'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeCaseId = params.get('caseId');
+  const c = CS_DATA.cases.find(x => x.id === activeCaseId) || CS_DATA.cases[0];
+
+  if (!c) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Investigation Timeline</h2>
+          <p>No active case selected for investigation.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+        <h4>No case selected</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          Select a valid case from the cases queue or dashboard to view its details.
+        </p>
+      </div>
+    `;
+  } else {
+    document.getElementById('breadcrumbCaseId').textContent = c.id;
+    document.getElementById('caseTitle').textContent = c.id;
+    
+    const pChip = document.getElementById('priorityChip');
+    pChip.textContent = c.priority;
+    pChip.className = 'chip';
+    if (c.priority === 'Critical') pChip.classList.add('chip-critical');
+    else if (c.priority === 'High') pChip.classList.add('chip-high');
+    else if (c.priority === 'Medium') pChip.classList.add('chip-medium');
+    else pChip.classList.add('chip-low');
+
+    const sChip = document.getElementById('statusChip');
+    sChip.textContent = c.status;
+    sChip.className = 'chip';
+    if (c.status === 'Resolved' || c.status === 'Closed') sChip.classList.add('chip-success');
+    else if (c.status === 'Pending') sChip.classList.add('chip-progress');
+    else sChip.classList.add('chip-open');
+
+    const formattedDate = CS_DATA.fmtDate(c.filedOn);
+    document.getElementById('caseSub').textContent = `${c.victim} · ${c.channel} Fraud · Filed ${formattedDate.split(' · ')[0]}`;
+
+    document.getElementById('closureLink').href = `case-closure.html?caseId=${c.id}`;
+
+    document.getElementById('factAmount').textContent = CS_DATA.fmtINR(c.amount);
+    document.getElementById('factSourceBank').textContent = c.sourceBank || "—";
+    document.getElementById('factDestBank').textContent = c.destBank || "—";
+    document.getElementById('factTelecom').textContent = c.telecom || "—";
+    document.getElementById('factOfficer').textContent = c.officer || "—";
+
+    const caseTimeline = CS_DATA.timeline.filter(t => t.caseId === c.id);
+    const tl = document.getElementById('tl');
+    if (caseTimeline.length === 0) {
+      tl.innerHTML = `<div style="padding:24px 0; text-align:center; color:var(--text-secondary); font-size:13.5px;">No timeline events recorded.</div>`;
+    } else {
+      tl.innerHTML = caseTimeline.map(t=>`
+        <div class="timeline-item">
+          <div class="timeline-dot ${t.done?'done':''}">${t.done?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':''}</div>
+          <div class="timeline-time">${CS_DATA.fmtDate(t.time).split(' · ')[0]}</div>
+          <div class="timeline-title">${t.title}</div>
+          <div class="timeline-desc">${t.desc}</div>
+        </div>`).join('');
+    }
+
+    const caseEvidence = CS_DATA.evidence.filter(e => e.caseId === c.id);
+    const evList = document.getElementById('evList');
+    if (caseEvidence.length === 0) {
+      evList.innerHTML = `<div style="padding:24px 0; text-align:center; color:var(--text-secondary); font-size:13.5px;">No evidence files uploaded.</div>`;
+    } else {
+      evList.innerHTML = caseEvidence.map(e=>`
+        <div class="flex justify-between items-center" style="padding:12px 0; border-bottom:1px solid var(--border);">
+          <span class="text-sm">${e.type==='pdf'?'📄':e.type==='image'?'🖼️':e.type==='audio'?'🎧':'📊'} ${e.name}</span>
+          <span class="text-xs text-muted">${e.size} · ${e.by}</span>
+        </div>`).join('');
+    }
+
+    const caseFr = CS_DATA.freezeRequests.filter(f => f.caseId === c.id);
+    const caseSim = CS_DATA.simRequests.filter(s => s.caseId === c.id);
+    const actionsBody = document.getElementById('actionsBody');
+    
+    let actionsHtml = '';
+    actionsHtml += `<tr><td>${c.sourceBank}</td><td class="text-sm">Verified source transaction</td><td class="text-sm text-secondary">${CS_DATA.fmtDate(c.filedOn).split(' · ')[0]}</td><td><span class="chip chip-resolved">Complete</span></td></tr>`;
+    
+    caseFr.forEach(fr => {
+      const statusClass = fr.status === 'Approved' ? 'chip-resolved' : fr.status === 'Rejected' ? 'chip-rejected' : 'chip-progress';
+      actionsHtml += `<tr><td>${fr.bank}</td><td class="text-sm">Freeze request ${fr.id}</td><td class="text-sm text-secondary">${CS_DATA.fmtDate(fr.requestedOn).split(' · ')[0]}</td><td><span class="chip ${statusClass}">${fr.status}</span></td></tr>`;
+    });
+    
+    caseSim.forEach(sim => {
+      const statusClass = sim.status === 'Completed' ? 'chip-resolved' : 'chip-progress';
+      actionsHtml += `<tr><td>${sim.telecom}</td><td class="text-sm">SIM verification ${sim.id}</td><td class="text-sm text-secondary">${CS_DATA.fmtDate(sim.requestedOn).split(' · ')[0]}</td><td><span class="chip ${statusClass}">${sim.status}</span></td></tr>`;
+    });
+    actionsBody.innerHTML = actionsHtml;
+
+    const caseAudit = CS_DATA.auditLogs.filter(a => a.action.includes(c.id));
+    const audit = document.getElementById('audit');
+    if (caseAudit.length === 0) {
+      audit.innerHTML = `<div style="padding:24px 0; text-align:center; color:var(--text-secondary); font-size:13.5px;">No audit records found.</div>`;
+    } else {
+      audit.innerHTML = caseAudit.map(a=>`
+        <div class="timeline-item">
+          <div class="timeline-dot done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div class="timeline-time">${CS_DATA.fmtDate(a.time).split(' · ')[0]}</div>
+          <div class="timeline-title">${a.action}</div>
+          <div class="timeline-desc">${a.actor} · ${a.ip}</div>
+        </div>`).join('');
+    }
+
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('is-active'));
+        document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+        tab.classList.add('is-active');
+        document.getElementById('tab-'+tab.dataset.tab).style.display='block';
+      });
+    });
+  }
+</script>
+</body>
+</html>

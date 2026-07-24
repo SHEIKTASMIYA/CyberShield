@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-page="profile">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Profile</h2><p>Your personal information as registered with CyberShield.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" data-toast-success="Profile updated">Save Changes</button></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 2fr;">
+        <div class="card card-pad" style="text-align:center;">
+          <span class="avatar avatar-lg" style="margin:0 auto 16px; width:80px; height:80px; font-size:24px;">RM</span>
+          <strong style="display:block; font-size:15px;">Rohit Malhotra</strong>
+          <p class="text-xs text-muted" style="margin-top:2px;">Citizen · Verified Account</p>
+          <button class="btn btn-secondary btn-sm" style="margin-top:16px;">Change Photo</button>
+        </div>
+        <div class="card card-pad">
+          <div class="grid grid-2">
+            <div class="field"><label>Full Name</label><input class="input" value="Rohit Malhotra"></div>
+            <div class="field"><label>Date of Birth</label><input class="input" type="date" value="1990-04-12"></div>
+            <div class="field"><label>Email Address</label><input class="input" value="rohit.malhotra@example.com"></div>
+            <div class="field"><label>Mobile Number</label><input class="input" value="+91 98765 xxxx1"></div>
+            <div class="field" style="grid-column:1/-1;"><label>Address</label><input class="input" value="Indiranagar, Bengaluru, Karnataka 560038"></div>
+            <div class="field"><label>Aadhaar (masked)</label><input class="input" value="XXXX XXXX 4471" disabled></div>
+            <div class="field"><label>PAN (masked)</label><input class="input" value="ABXXX1234X" disabled></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  CS_renderShell('citizen','profile',{pageTitle:'Profile'});
+  const user = CS_DATA.currentUser.citizen;
+  if (user) {
+    document.querySelector('.avatar-lg').textContent = user.initials || "CV";
+    document.querySelector('.card-pad strong').textContent = user.name || "Citizen Victim";
+    
+    const inputs = document.querySelectorAll('.input');
+    if (inputs.length >= 4) {
+      inputs[0].value = user.name || "";
+      inputs[2].value = user.email || "";
+      inputs[3].value = user.phone || "";
+    }
+  }
+
+  const saveBtn = document.querySelector('.page-actions .btn-primary');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      const inputs = document.querySelectorAll('.input');
+      const name = inputs[0].value;
+      const email = inputs[2].value;
+      const phone = inputs[3].value;
+      
+      CS_DATA.currentUser.citizen.name = name;
+      CS_DATA.currentUser.citizen.email = email;
+      CS_DATA.currentUser.citizen.phone = phone;
+      CS_DATA.currentUser.citizen.initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+      CS_DATA.saveState();
+      
+      CS_toast('Profile updated', 'Your changes have been saved.');
+      setTimeout(() => window.location.reload(), 800);
+    });
+  }
+</script>
+</body>
+</html>

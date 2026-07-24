@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freeze Approval — Destination Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+.kv:last-child{ border-bottom:none; } .kv span:first-child{ color:var(--text-muted); }</style>
+</head>
+<body data-page="freeze-approval">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="breadcrumbs"><a href="pending-freeze-requests.html">Pending Freeze Requests</a><span class="sep">/</span><span id="breadcrumbFrId" class="current">FR-55210</span></div>
+      <div class="page-head">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 id="frIdTitle" class="mono" style="font-size:24px;">FR-55210</h2>
+            <span id="frSlaChip" class="chip chip-progress">Pending · 9h left</span>
+          </div>
+          <p id="frSubtitle">From HDFC Bank · Case CC-2026-08841</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-danger" data-modal-open="rejectModal">Reject</button>
+          <button id="approveBtn" class="btn btn-primary">Approve Freeze</button>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">Request Details</h5>
+          <div class="kv"><span>Beneficiary Account</span><span id="benAccount" class="mono">XXXX-XXXX-4471</span></div>
+          <div class="kv"><span>Account Holder</span><span>Unresolved / Under Investigation</span></div>
+          <div class="kv"><span>Amount to Freeze</span><span id="frAmount" class="mono">₹4,85,000</span></div>
+          <div class="kv"><span>Requesting Bank</span><span id="srcBank">HDFC Bank</span></div>
+          <div class="kv"><span>Requested On</span><span id="frRequestedOn">14 Jul 2026, 12:30</span></div>
+          <div class="kv"><span>Marked Urgent</span><span class="chip chip-critical">Yes</span></div>
+          <hr class="divider">
+          <h5 style="margin-bottom:14px;">Grounds for Request</h5>
+          <p id="frGrounds" class="text-sm text-secondary" style="line-height:1.7;">Confirmed fraudulent UPI transaction from verified victim account. Source transaction matches complaint CC-2026-08841. Requesting immediate hold pending investigation.</p>
+        </div>
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">Account Snapshot</h5>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Current balance</span><span class="mono">₹5,12,340</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Account age</span><span>11 days</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Prior flags</span><span class="chip chip-high">2 linked cases</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0;"><span class="text-muted">KYC status</span><span class="chip chip-rejected">Incomplete</span></div>
+          <a href="../cybercrime/fraud-network-graph.html" class="btn btn-secondary btn-block" style="margin-top:16px;">View in Fraud Network</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="rejectModal">
+  <div class="modal">
+    <div class="modal-head"><h4>Reject Freeze Request</h4><button class="btn btn-ghost btn-icon" data-modal-close>✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Reason for rejection</label>
+        <select class="select input"><option>Account already closed</option><option>Insufficient evidence</option><option>Account holder disputes claim</option><option>Duplicate request</option></select>
+      </div>
+      <div class="field"><label>Additional notes</label><textarea class="input" rows="3" placeholder="Explain for the case record…"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-modal-close>Cancel</button><button class="btn btn-danger" onclick="CS_DATA.updateFreezeRequest('FR-55210','Rejected'); CS_closeModal('rejectModal'); CS_toast('Request rejected','FR-55210 rejected and logged','error'); setTimeout(()=>window.location.href='pending-freeze-requests.html',1000);">Confirm Rejection</button></div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('destBank','freeze-approval',{pageTitle:'Freeze Approval'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeFrId = params.get('requestId') || "FR-55210";
+  const fr = CS_DATA.freezeRequests.find(x => x.id === activeFrId) || CS_DATA.freezeRequests[0];
+
+  if (!fr) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Freeze Approval</h2>
+          <p>No active freeze request selected for approval.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+        <h4>No freeze request found</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          There are no freeze requests matching this identifier to approve.
+        </p>
+      </div>
+    `;
+  } else {
+    document.getElementById('breadcrumbFrId').textContent = fr.id;
+    document.getElementById('frIdTitle').textContent = fr.id;
+    
+    const statusChip = document.getElementById('frSlaChip');
+    statusChip.textContent = `${fr.status} · ${fr.sla}`;
+    statusChip.className = 'chip';
+    if (fr.status === 'Approved') statusChip.classList.add('chip-success');
+    else if (fr.status === 'Rejected') statusChip.classList.add('chip-rejected');
+    else statusChip.classList.add('chip-progress');
+
+    document.getElementById('frSubtitle').textContent = `From ${fr.sourceBank} · Case ${fr.caseId}`;
+    
+    document.getElementById('benAccount').textContent = fr.account;
+    
+    document.getElementById('frAmount').textContent = CS_DATA.fmtINR(fr.amount);
+    document.getElementById('srcBank').textContent = fr.sourceBank;
+    
+    const formattedDate = CS_DATA.fmtDate(fr.requestedOn);
+    document.getElementById('frRequestedOn').textContent = `${formattedDate.split(' · ')[0]}, ${formattedDate.split(' · ')[1]} IST`;
+
+    const c = CS_DATA.cases.find(x => x.id === fr.caseId);
+    const groundsText = c 
+      ? `Confirmed fraudulent ${c.channel} transaction from verified victim account ${c.sourceAccount}. Source transaction matches complaint ${c.id}. Requesting immediate hold on beneficiary account ${c.beneficiaryAccount} (UPI ID: ${c.beneficiaryUpi}) pending investigation.`
+      : `Confirmed fraudulent transaction from verified victim account. Requesting immediate hold on beneficiary account ${fr.account} pending investigation.`;
+    document.getElementById('frGrounds').textContent = groundsText;
+
+    const approveBtn = document.getElementById('approveBtn');
+    if (approveBtn) {
+      if (fr.status !== 'Pending') {
+        approveBtn.disabled = true;
+        approveBtn.style.opacity = '0.5';
+        approveBtn.style.cursor = 'not-allowed';
+      }
+      approveBtn.addEventListener('click', () => {
+        CS_DATA.updateFreezeRequest(fr.id, 'Approved');
+        CS_toast('Freeze approved', `Account ${fr.account} has been placed on hold`);
+        setTimeout(() => {
+          window.location.href = 'frozen-accounts.html';
+        }, 1200);
+      });
+    }
+
+    const rejectConfirmBtn = document.querySelector('#rejectModal .btn-danger');
+    if (rejectConfirmBtn) {
+      rejectConfirmBtn.onclick = null;
+      rejectConfirmBtn.addEventListener('click', () => {
+        const selectReason = document.querySelector('#rejectModal .select').value;
+        const notes = document.querySelector('#rejectModal textarea').value;
+        CS_DATA.updateFreezeRequest(fr.id, 'Rejected', selectReason + (notes ? `: ${notes}` : ''));
+        CS_closeModal('rejectModal');
+        CS_toast('Request rejected', `${fr.id} rejected and logged`, 'error');
+        setTimeout(() => {
+          window.location.href = 'pending-freeze-requests.html';
+        }, 1200);
+      });
+    }
+  }
+</script>
+</body>
+</html>

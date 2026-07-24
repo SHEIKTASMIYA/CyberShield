@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Airtel Nodal Desk</h2><p>SIM and IMEI verification requests from Cyber Crime Dept.</p></div></div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Pending Requests</span><span class="stat-value" data-dynamic-stat="telecom-pending"></span><span class="stat-delta down">SLA 12h</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Completed This Month</span><span class="stat-value">64</span><span class="stat-delta up">97% SLA met</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">SIMs Traced</span><span class="stat-value">41</span><span class="stat-delta up">Across 28 cases</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Avg. Turnaround</span><span class="stat-value">4.2 hrs</span><span class="stat-delta up">Faster than target</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4>Investigation Requests</h4><a href="investigation-requests.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View all →</a></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Number</th><th>Requested</th><th>Status</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('telecom','dashboard',{pageTitle:'Dashboard'});
+  const user = CS_DATA.currentUser.telecom;
+  const orgName = user && user.org ? user.org : "Airtel";
+  document.querySelector('.page-head h2').textContent = `${orgName} Nodal Desk`;
+
+  const pendingSim = CS_DATA.simRequests.filter(s => s.telecom === orgName && s.status === 'Pending');
+  const completedSim = CS_DATA.simRequests.filter(s => s.telecom === orgName && s.status === 'Completed');
+  const pendingImei = CS_DATA.imeiRequests.filter(s => s.telecom === orgName && s.status === 'Pending');
+  const totalPending = pendingSim.length + pendingImei.length;
+
+  document.querySelector('[data-dynamic-stat="telecom-pending"]').textContent = totalPending;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = completedSim.length;
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = completedSim.length;
+  document.querySelectorAll('.stat-card .stat-value')[3].textContent = "—";
+
+  const body = document.getElementById('body');
+  const orgRequests = CS_DATA.simRequests.filter(s => s.telecom === orgName);
+
+  if (orgRequests.length === 0) {
+    body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    body.innerHTML = orgRequests.map(s=>`
+      <tr class="row-link" onclick="window.location.href='sim-verification.html?requestId=${s.id}'">
+        <td class="mono text-sm">${s.id}</td>
+        <td class="mono text-sm">${s.caseId}</td>
+        <td class="mono text-sm">${s.number}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(s.requestedOn).split(' · ')[0]}</td>
+        <td>${CS_chip(s.status)}</td>
+        <td class="text-secondary">›</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>
+

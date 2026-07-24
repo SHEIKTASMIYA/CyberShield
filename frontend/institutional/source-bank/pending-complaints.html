@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pending Complaints — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="pending-complaints">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h2>Pending Complaints</h2>
+          <p id="pageSubtitle">Complaints awaiting verification from your bank.</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="searchInput" placeholder="Search case ID or victim…">
+        </div>
+        <select id="prioritySelect" class="select input" style="width:auto;">
+          <option>All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+        </select>
+        <select id="channelSelect" class="select input" style="width:auto;">
+          <option>All Channels</option><option>UPI</option><option>Net Banking</option><option>Debit Card</option><option>Credit Card</option><option>RTGS / NEFT</option><option>QR Fraud</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Case ID</th>
+                <th>Victim</th>
+                <th>Amount</th>
+                <th>Source Bank</th>
+                <th>Dest Bank</th>
+                <th>Channel</th>
+                <th>Filed</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+        <div class="pagination" style="display:none;">
+          <span></span>
+          <div class="page-btns"><span class="page-btn is-active">1</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank', 'pending-complaints', { pageTitle: 'Pending Complaints' });
+
+  // Get logged-in source bank officer's org name
+  const user    = CS_DATA.currentUser && CS_DATA.currentUser.sourceBank;
+  const orgName = (user && user.org) ? user.org : null;
+
+  // Update subtitle
+  document.getElementById('pageSubtitle').textContent =
+    orgName ? `Complaints awaiting verification from ${orgName}.`
+            : 'All pending fraud complaints awaiting source bank verification.';
+
+  const searchInput   = document.getElementById('searchInput');
+  const prioritySelect = document.getElementById('prioritySelect');
+  const channelSelect  = document.getElementById('channelSelect');
+
+  function getPendingCases() {
+    // A case is "pending for source bank" if:
+    //   1. Its status is Pending or Under Review (not yet actioned by bank)
+    //   2. Its sourceBank matches this officer's org (or no org = show all)
+    // Also include cases where a complaint entry exists with status Pending
+    const pendingStatuses = ['Pending', 'Under Review'];
+
+    return CS_DATA.cases.filter(c => {
+      // Bank filter: if we know the officer's org, match it; otherwise show all
+      const bankMatch = !orgName || c.sourceBank === orgName;
+      if (!bankMatch) return false;
+
+      // Status filter: show if case is unactioned OR complaint is Pending
+      const caseIsPending = pendingStatuses.includes(c.status);
+      const hasComplaint  = CS_DATA.complaints.some(
+        x => x.caseId === c.id && x.status === 'Pending'
+      );
+      return caseIsPending || hasComplaint;
+    });
+  }
+
+  function renderComplaints() {
+    const query    = searchInput.value.toLowerCase().trim();
+    const priority = prioritySelect.value;
+    const channel  = channelSelect.value;
+
+    const all = getPendingCases();
+    const filtered = all.filter(c => {
+      const matchesSearch   = c.id.toLowerCase().includes(query) ||
+                              (c.victim || '').toLowerCase().includes(query);
+      const matchesPriority = priority === 'All Priorities' || c.priority === priority;
+      const matchesChannel  = channel  === 'All Channels'   || c.channel  === channel;
+      return matchesSearch && matchesPriority && matchesChannel;
+    });
+
+    const body       = document.getElementById('body');
+    const pagination = document.querySelector('.pagination');
+
+    if (filtered.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="10" style="padding:40px 24px; text-align:center; color:var(--text-muted); font-size:13.5px;">
+            <div style="font-size:36px; margin-bottom:12px;">📭</div>
+            <div style="font-weight:600; margin-bottom:6px; color:var(--text-secondary);">No pending complaints</div>
+            <div class="text-sm">Complaints submitted by citizens will appear here automatically.</div>
+          </td>
+        </tr>`;
+      if (pagination) pagination.style.display = 'none';
+      return;
+    }
+
+    if (pagination) {
+      pagination.style.display = 'flex';
+      pagination.querySelector('span').textContent =
+        `Showing 1–${filtered.length} of ${filtered.length} complaint(s)`;
+    }
+
+    body.innerHTML = filtered.map(c => {
+      const cmp = CS_DATA.complaints.find(x => x.caseId === c.id);
+      const cmpStatus = cmp ? cmp.status : 'Pending';
+      const statusColor = cmpStatus === 'Verified' ? 'chip-resolved' : 'chip-neutral';
+      return `
+        <tr class="row-link" onclick="window.location.href='complaint-verification.html?caseId=${c.id}'">
+          <td class="mono text-sm">${c.id}</td>
+          <td class="text-sm">${c.victim || '—'}</td>
+          <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+          <td class="text-sm">${c.sourceBank || '—'}</td>
+          <td class="text-sm">${c.destBank || '—'}</td>
+          <td class="text-sm">${c.channel || '—'}</td>
+          <td class="text-sm text-secondary">${CS_DATA.fmtDate(c.filedOn).split(' · ')[0]}</td>
+          <td>${CS_priorityChip(c.priority)}</td>
+          <td><span class="chip ${statusColor}">${cmpStatus}</span></td>
+          <td class="text-secondary">›</td>
+        </tr>`;
+    }).join('');
+  }
+
+  searchInput.addEventListener('input', renderComplaints);
+  prioritySelect.addEventListener('change', renderComplaints);
+  channelSelect.addEventListener('change', renderComplaints);
+
+  renderComplaints();
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Completed Reports — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body data-page="completed-reports">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Completed Reports</h2><p>Finalized verification reports submitted to Cyber Crime Dept.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary">Export CSV</button></div></div>
+
+      <div class="card card-pad" style="margin-bottom:var(--sp-6);">
+        <h5 style="margin-bottom:16px;">Monthly Completion Volume</h5>
+        <canvas id="c1" height="90"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Type</th><th>Completed On</th><th>Outcome</th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('telecom','completed-reports',{pageTitle:'Completed Reports'});
+  const user = CS_DATA.currentUser.telecom;
+  const orgName = user && user.org ? user.org : "Airtel";
+
+  const completed = CS_DATA.simRequests.filter(s => s.telecom === orgName && s.status === 'Completed');
+  const a = CS_DATA.analytics;
+
+  function handleEmptyChart(canvasId, labels, values) {
+    if (!values || values.length === 0) {
+      const canvas = document.getElementById(canvasId);
+      canvas.style.display = 'none';
+      const card = canvas.closest('.card');
+      const msg = document.createElement('div');
+      msg.style.padding = '48px 24px';
+      msg.style.textAlign = 'center';
+      msg.style.color = 'var(--text-secondary)';
+      msg.innerHTML = '<p>Analytics will appear when data becomes available.</p>';
+      card.appendChild(msg);
+      return true;
+    }
+    return false;
+  }
+
+  const chartValues = a.monthlyFrauds && a.monthlyFrauds.values && a.monthlyFrauds.values.length > 0 ? [44,51,58,62,60,64] : [];
+  if (!handleEmptyChart('c1', a.monthlyFrauds ? a.monthlyFrauds.labels : [], chartValues)) {
+    new Chart(document.getElementById('c1'), {type:'bar', data:{labels:a.monthlyFrauds.labels, datasets:[{label:'Requests completed', data:chartValues, backgroundColor:'#12A79A', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+  }
+
+  const body = document.getElementById('body');
+  if (completed.length === 0) {
+    body.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    body.innerHTML = completed.map(s=>`
+      <tr>
+        <td class="mono text-sm">${s.id}</td>
+        <td class="mono text-sm">${s.caseId}</td>
+        <td class="text-sm">SIM Verification</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(s.requestedOn).split(' · ')[0]}</td>
+        <td><span class="chip chip-resolved">Ownership Confirmed</span></td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>

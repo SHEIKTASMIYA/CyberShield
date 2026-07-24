@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Destination Bank Settings | CyberShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="settings">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head">
+        <div>
+          <h2>Destination Bank Configuration</h2>
+          <p>SLA threshold rules, auto-freeze triggers, and API gateway parameters.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="CS_toast('Settings Saved','Configuration successfully applied.')">Save Settings</button>
+        </div>
+      </div>
+
+      <div class="flex-col gap-6">
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20M4.9 6.9l14.2 10.2M19.1 6.9 4.9 17.1M2 12h20"/></svg>
+            </span>
+            <h4>Automated Freeze Thresholds</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>Auto-Freeze Trigger Threshold (INR)</label>
+              <input type="number" class="input" value="100000">
+              <span class="hint">Freeze requests under this amount from verified source banks are auto-held for 24 hours.</span>
+            </div>
+            <div class="field">
+              <label>Default Review SLA Target (Hours)</label>
+              <input type="number" class="input" value="12">
+              <span class="hint">Target SLA clock for nodal officer manual review.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18M4 21V9l8-5 8 5v12M9 21v-6h6v6"/></svg>
+            </span>
+            <h4>Core Banking Gateway Sync</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>Core Banking API Endpoint</label>
+              <input type="text" class="input" value="https://api.internal.yesbank.in/v2/hold-engine" readonly style="background:var(--surface-sunken);">
+            </div>
+            <div class="field">
+              <label>Webhook Health Alert Email</label>
+              <input type="email" class="input" value="fcu-alerts@yesbank.in">
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    CS_renderShell("destBank", "settings", {pageTitle: "Settings"});
+  });
+</script>
+</body>
+</html>

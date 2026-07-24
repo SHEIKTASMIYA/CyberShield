@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraud Network Graph — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>
+  .graph-shell{ display:grid; grid-template-columns:1fr 320px; gap:var(--sp-5); height:calc(100vh - var(--topbar-h) - var(--sp-10) - 90px); }
+  .graph-canvas-wrap{ background:var(--ink-950); border-radius:var(--r-lg); position:relative; overflow:hidden; border:1px solid var(--border); }
+  [data-theme="dark"] .graph-canvas-wrap{ background:var(--ink-900); }
+  .graph-toolbar{ position:absolute; top:16px; left:16px; display:flex; gap:8px; z-index:5; }
+  .gt-btn{ width:34px; height:34px; border-radius:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); color:#fff; display:flex; align-items:center; justify-content:center; }
+  .gt-btn:hover{ background:rgba(255,255,255,.16); }
+  .legend{ position:absolute; bottom:16px; left:16px; display:flex; gap:14px; flex-wrap:wrap; background:rgba(11,18,32,.75); backdrop-filter:blur(6px); padding:10px 14px; border-radius:10px; z-index:5; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:11px; color:#C7D1E5; }
+  .legend-dot{ width:9px; height:9px; border-radius:50%; }
+  .node-circle{ cursor:pointer; transition:r .15s ease; }
+  .node-circle:hover{ filter:brightness(1.3); }
+  .node-label{ font-family:var(--font-ui); font-size:10px; fill:#C7D1E5; pointer-events:none; }
+  .edge-line{ stroke:#2B3B5E; stroke-width:1.2; }
+  .edge-line.hi{ stroke:#3CC4B6; stroke-width:2; }
+  .detail-empty{ display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted); text-align:center; padding:24px; font-size:13px; }
+</style>
+</head>
+<body data-page="fraud-network">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Fraud Network Graph</h2><p>Visualizing linked accounts, UPI IDs, phone numbers, devices and IPs across active cases.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary btn-sm">Export Graph</button></div></div>
+
+      <div class="graph-shell">
+        <div class="graph-canvas-wrap">
+          <div class="graph-toolbar">
+            <button class="gt-btn" title="Zoom in" onclick="zoomGraph(1.15)">+</button>
+            <button class="gt-btn" title="Zoom out" onclick="zoomGraph(0.87)">−</button>
+            <button class="gt-btn" title="Reset" onclick="resetGraph()">⟲</button>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#DC2626;"></span>Case</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#12A79A;"></span>Account</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#D97706;"></span>UPI ID</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#2A63C7;"></span>Phone</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#7F77DD;"></span>Device</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#9AABC9;"></span>Bank / IP</div>
+          </div>
+          <svg id="graphSvg" width="100%" height="100%" viewBox="0 0 800 560"></svg>
+        </div>
+        <div class="card" style="overflow-y:auto;">
+          <div class="card-header"><h5 style="font-size:14px;">Node Details</h5></div>
+          <div id="detailPanel"><div class="detail-empty">Click any node in the graph to inspect its connections and case links.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','fraud-network',{pageTitle:'Fraud Network Graph'});
+
+  const COLORS = { case:'#DC2626', account:'#12A79A', upi:'#D97706', phone:'#2A63C7', device:'#7F77DD', bank:'#9AABC9', ip:'#9AABC9' };
+  const TYPE_LABEL = { case:'Case', account:'Account', upi:'UPI ID', phone:'Phone Number', device:'Device (IMEI)', bank:'Bank', ip:'IP Address' };
+
+  // Build network dynamically from cases
+  const nodes = [];
+  const links = [];
+  const addedNodes = new Set();
+
+  CS_DATA.cases.forEach(c => {
+    if (!addedNodes.has(c.id)) {
+      nodes.push({ id: c.id, label: c.id, type: 'case' });
+      addedNodes.add(c.id);
+    }
+    
+    if (c.beneficiaryAccount && c.beneficiaryAccount !== "N/A") {
+      const accId = `ACC-${c.beneficiaryAccount}`;
+      if (!addedNodes.has(accId)) {
+        nodes.push({ id: accId, label: c.beneficiaryAccount, type: 'account' });
+        addedNodes.add(accId);
+      }
+      links.push([c.id, accId]);
+    }
+    
+    if (c.beneficiaryUpi && c.beneficiaryUpi !== "N/A") {
+      const upiId = `UPI-${c.beneficiaryUpi}`;
+      if (!addedNodes.has(upiId)) {
+        nodes.push({ id: upiId, label: c.beneficiaryUpi, type: 'upi' });
+        addedNodes.add(upiId);
+      }
+      links.push([c.id, upiId]);
+    }
+
+    if (c.sourceBank) {
+      const bankId = `BANK-${c.sourceBank}`;
+      if (!addedNodes.has(bankId)) {
+        nodes.push({ id: bankId, label: c.sourceBank, type: 'bank' });
+        addedNodes.add(bankId);
+      }
+      links.push([c.id, bankId]);
+    }
+  });
+
+  const positions = {};
+  nodes.forEach((n, idx) => {
+    const angle = (idx / nodes.length) * 2 * Math.PI;
+    const r = n.type === 'case' ? 120 : 190;
+    const cx = 400 + r * Math.cos(angle);
+    const cy = 280 + r * Math.sin(angle);
+    positions[n.id] = [Math.floor(cx), Math.floor(cy)];
+  });
+
+  const svg = document.getElementById('graphSvg');
+
+  function render(){
+    if (nodes.length === 0) {
+      svg.style.display = 'none';
+      const wrap = document.querySelector('.graph-canvas-wrap');
+      const emptyEl = document.createElement('div');
+      emptyEl.className = 'detail-empty';
+      emptyEl.style.color = '#fff';
+      emptyEl.style.height = '100%';
+      emptyEl.style.display = 'flex';
+      emptyEl.style.flexDirection = 'column';
+      emptyEl.style.alignItems = 'center';
+      emptyEl.style.justifyContent = 'center';
+      emptyEl.innerHTML = `
+        <div style="font-size:48px; margin-bottom:16px;">🌐</div>
+        <h4>No cases in network graph</h4>
+        <p style="margin-top:8px; opacity:0.7; max-width:320px; font-size:12px;">Reported cases and transaction chains will appear here as a link graph.</p>
+      `;
+      wrap.appendChild(emptyEl);
+      return;
+    }
+
+    let html = '';
+    links.forEach(([a,b])=>{
+      const posA = positions[a];
+      const posB = positions[b];
+      if (posA && posB) {
+        html += `<line class="edge-line" x1="${posA[0]}" y1="${posA[1]}" x2="${posB[0]}" y2="${posB[1]}"></line>`;
+      }
+    });
+    nodes.forEach(n=>{
+      const pos = positions[n.id];
+      if (pos) {
+        const [x,y] = pos;
+        const r = n.type === 'case' ? 14 : 9;
+        html += `<g data-id="${n.id}">
+          <circle class="node-circle" cx="${x}" cy="${y}" r="${r}" fill="${COLORS[n.type]}" stroke="#0B1220" stroke-width="2" onclick="selectNode('${n.id}')"></circle>
+          <text class="node-label" x="${x}" y="${y+r+13}" text-anchor="middle">${n.label}</text>
+        </g>`;
+      }
+    });
+    svg.innerHTML = html;
+  }
+  render();
+
+  function selectNode(id){
+    const node = nodes.find(n=>n.id===id);
+    const connected = links.filter(([a,b])=>a===id||b===id).map(([a,b])=> a===id?b:a);
+    const connectedNodes = connected.map(cid=>nodes.find(n=>n.id===cid));
+
+    document.querySelectorAll('.edge-line').forEach(l=>l.classList.remove('hi'));
+    links.forEach(([a,b], i)=>{
+      if(a===id||b===id) document.querySelectorAll('.edge-line')[i].classList.add('hi');
+    });
+
+    document.getElementById('detailPanel').innerHTML = `
+      <div class="card-body">
+        <div class="flex items-center gap-2" style="margin-bottom:4px;">
+          <span style="width:12px;height:12px;border-radius:50%;background:${COLORS[node.type]};"></span>
+          <span class="text-xs text-muted" style="text-transform:uppercase; font-weight:700; letter-spacing:.05em;">${TYPE_LABEL[node.type]}</span>
+        </div>
+        <h4 class="mono" style="font-size:17px; margin-bottom:16px;">${node.label}</h4>
+        <div class="text-xs text-muted" style="font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">Connected to (${connectedNodes.length})</div>
+        <div class="flex-col gap-2">
+          ${connectedNodes.map(cn=>`
+            <div class="flex items-center gap-2" style="padding:8px 10px; background:var(--surface-sunken); border-radius:var(--r-md); cursor:pointer;" onclick="selectNode('${cn.id}')">
+              <span style="width:8px;height:8px;border-radius:50%;background:${COLORS[cn.type]}; flex:0 0 auto;"></span>
+              <span class="text-sm mono" style="flex:1;">${cn.label}</span>
+              <span class="text-xs text-muted">${TYPE_LABEL[cn.type]}</span>
+            </div>`).join('')}
+        </div>
+        ${node.type==='account' || node.type==='device' || node.type==='upi' ? `<div class="card" style="margin-top:16px; background:var(--danger-soft); border:none;"><div class="card-body" style="padding:12px;"><strong class="text-xs" style="color:var(--danger);">⚠ Appears in ${connectedNodes.filter(n=>n.type==='case').length || 1}+ case(s)</strong><p class="text-xs text-secondary" style="margin-top:4px;">Recommend flagging for cross-case pattern review.</p></div></div>` : ''}
+      </div>`;
+  }
+
+  let scale = 1;
+  function zoomGraph(f){ scale *= f; svg.style.transform = `scale(${scale})`; svg.style.transformOrigin = 'center'; }
+  function resetGraph(){ scale = 1; svg.style.transform = 'scale(1)'; document.querySelectorAll('.edge-line').forEach(l=>l.classList.remove('hi')); document.getElementById('detailPanel').innerHTML = '<div class="detail-empty">Click any node in the graph to inspect its connections and case links.</div>'; }
+</script>
+</body>
+</html>

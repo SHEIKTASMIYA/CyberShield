@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>HDFC Bank Operations</h2><p>Fraud complaint verification & freeze request desk.</p></div>
+        <div class="page-actions"><a href="generate-freeze-request.html" class="btn btn-primary">+ New Freeze Request</a></div>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Pending Complaints</span><span class="stat-value" data-stat="pending-complaints"></span><span class="stat-delta down">3 breach SLA today</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Verified This Week</span><span class="stat-value">62</span><span class="stat-delta up">+8% vs last week</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Freeze Requests Sent</span><span class="stat-value">142</span><span class="stat-delta up">96% SLA compliance</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Avg. Verification Time</span><span class="stat-value">38 min</span><span class="stat-delta up">Down from 51 min</span></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr; align-items:start;">
+        <div class="card">
+          <div class="card-header"><h4>Pending Complaints</h4><a href="pending-complaints.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View all →</a></div>
+          <div class="table-wrap" style="border:none; border-radius:0;">
+            <table class="data-table">
+              <thead><tr><th>Case ID</th><th>Victim</th><th>Amount</th><th>Channel</th><th>Priority</th><th></th></tr></thead>
+              <tbody id="pcBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <h4 style="margin-bottom:16px;">SLA Health</h4>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>Verification SLA (2h)</span><strong style="color:var(--success);">96%</strong></div>
+          <div class="progress" style="margin-bottom:18px;"><span style="width:96%; background:var(--success);"></span></div>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>Freeze request turnaround</span><strong style="color:var(--amber-600);">81%</strong></div>
+          <div class="progress" style="margin-bottom:18px;"><span style="width:81%; background:var(--warning);"></span></div>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>Escalations this month</span><strong>4</strong></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:var(--sp-6);">
+        <div class="card-header"><h4>Recently Sent Freeze Requests</h4><a href="sent-requests.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View all →</a></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Destination Bank</th><th>Amount</th><th>SLA</th><th>Status</th></tr></thead>
+            <tbody id="frBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','dashboard',{pageTitle:'Dashboard'});
+  const user = CS_DATA.currentUser.sourceBank;
+  const orgName = user && user.org ? user.org : "HDFC Bank";
+  document.querySelector('.page-head h2').textContent = `${orgName} Operations`;
+
+  // Get pending cases matching this bank (or all cases if no specific org)
+  const pendingCases = CS_DATA.cases.filter(c => {
+    const bankMatch = !orgName || orgName === 'HDFC Bank' ? true : c.sourceBank === orgName;
+    return bankMatch && ['Pending', 'Under Review'].includes(c.status);
+  });
+  const requestsSent = CS_DATA.freezeRequests.filter(f => f.sourceBank === orgName);
+
+  document.querySelector('[data-stat="pending-complaints"]').textContent = pendingCases.length;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = "0";
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = requestsSent.length;
+  document.querySelectorAll('.stat-card .stat-value')[3].textContent = "—";
+
+  const delta = document.querySelector('.stat-card .stat-delta');
+  if (delta) delta.style.display = pendingCases.length > 0 ? 'inline-block' : 'none';
+
+  const pcBody = document.getElementById('pcBody');
+
+  if (pendingCases.length === 0) {
+    pcBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No pending complaints yet. They will appear here once citizens submit fraud reports.</td></tr>`;
+  } else {
+    pcBody.innerHTML = pendingCases.slice(0,5).map(c => `
+      <tr class="row-link" onclick="window.location.href='complaint-verification.html?caseId=${c.id}'">
+        <td class="mono text-sm">${c.id}</td>
+        <td class="text-sm">${c.victim || '—'}</td>
+        <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+        <td class="text-sm">${c.channel || '—'}</td>
+        <td>${CS_priorityChip(c.priority)}</td>
+        <td class="text-secondary">›</td>
+      </tr>`).join('');
+  }
+
+  const frBody = document.getElementById('frBody');
+  if (requestsSent.length === 0) {
+    frBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    frBody.innerHTML = requestsSent.map(f=>`
+      <tr>
+        <td class="mono text-sm">${f.id}</td>
+        <td class="mono text-sm">${f.caseId}</td>
+        <td class="text-sm">${f.bank}</td>
+        <td class="mono">${CS_DATA.fmtINR(f.amount)}</td>
+        <td class="text-sm">${f.sla}</td>
+        <td>${CS_chip(f.status)}</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>
+
+

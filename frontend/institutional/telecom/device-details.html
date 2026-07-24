@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device Details — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; } .kv:last-child{border-bottom:none;} .kv span:first-child{color:var(--text-muted);}</style>
+</head>
+<body data-page="device-details">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Device Details</h2><p>IMEI •8213 — linked to case CC-2026-08841</p></div></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">Device Information</h5>
+          <div class="kv"><span>IMEI</span><span class="mono">356938•••••8213</span></div>
+          <div class="kv"><span>Device model</span><span>Detected: Android smartphone</span></div>
+          <div class="kv"><span>First network activity</span><span>28 Jun 2026</span></div>
+          <div class="kv"><span>Current status</span><span class="chip chip-critical">Flagged</span></div>
+          <div class="kv"><span>Tower location (last known)</span><span>Indiranagar, Bengaluru</span></div>
+        </div>
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">Linked SIM Numbers</h5>
+          <div class="table-wrap" style="border:none; border-radius:0; margin:0 -20px;">
+            <table class="data-table" style="min-width:unset;">
+              <thead><tr><th>Number</th><th>Case</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="mono text-sm">+91 98xxxx4471</td><td class="mono text-sm">CC-2026-08841</td><td><span class="chip chip-critical">Active</span></td></tr>
+                <tr><td class="mono text-sm">+91 97xxxx5502</td><td class="mono text-sm">CC-2026-08830</td><td><span class="chip chip-progress">Under Review</span></td></tr>
+                <tr><td class="mono text-sm">+91 98xxxx7790</td><td class="mono text-sm">CC-2026-08776</td><td><span class="chip chip-resolved">Cleared</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>  CS_renderShell('telecom','device-details',{pageTitle:'Device Details'});
+  const params = new URLSearchParams(window.location.search);
+  const activeReqId = params.get('requestId');
+  const req = CS_DATA.imeiRequests.find(x => x.id === activeReqId) || CS_DATA.imeiRequests[0];
+
+  if (!req) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Device Details</h2>
+          <p>No active device lookup matching this identifier.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">📱</div>
+        <h4>No device details found</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          Please select a valid device request to view information.
+        </p>
+      </div>
+    `;
+  } else {
+    document.querySelector('.page-head p').innerHTML = `IMEI •${req.imei.slice(-4)} — linked to case ${req.caseId}`;
+    document.querySelectorAll('.kv span')[1].textContent = req.imei;
+    document.querySelectorAll('.kv span')[3].textContent = req.model || "Android smartphone";
+    document.querySelectorAll('.kv span')[5].textContent = CS_DATA.fmtDate(req.requestedOn).split(' · ')[0];
+    
+    const statusChip = document.querySelectorAll('.kv span')[7];
+    statusChip.textContent = req.status;
+    statusChip.className = 'chip';
+    if (req.status === 'Completed') statusChip.classList.add('chip-resolved');
+    else if (req.status === 'Pending') statusChip.classList.add('chip-progress');
+    else statusChip.classList.add('chip-critical');
+
+    document.querySelectorAll('.kv span')[9].textContent = req.location || "Bengaluru";
+
+    const tbody = document.querySelector('tbody');
+    tbody.innerHTML = `
+      <tr>
+        <td class="mono text-sm">${req.number || "N/A"}</td>
+        <td class="mono text-sm">${req.caseId}</td>
+        <td><span class="chip ${req.status === 'Completed' ? 'chip-resolved' : 'chip-critical'}">${req.status === 'Completed' ? 'Cleared' : 'Active'}</span></td>
+      </tr>
+    `;
+  }</script>
+</body>
+</html>

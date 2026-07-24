@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Platform Overview</h2><p>CyberShield HQ — system-wide status across all institutions and users.</p></div>
+        <div class="page-actions"><a href="institution-management.html" class="btn btn-secondary">+ Add Institution</a><a href="user-management.html" class="btn btn-primary">+ Add User</a></div></div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Connected Institutions</span><span class="stat-value">212</span><span class="stat-delta up">+3 this month</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Active Users</span><span class="stat-value">1,842</span><span class="stat-delta up">+64 this month</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">System Uptime</span><span class="stat-value">99.98%</span><span class="stat-delta up">Last 30 days</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Cases This Month</span><span class="stat-value">332</span><span class="stat-delta up">+15% vs last month</span></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr; align-items:start; margin-bottom:var(--sp-6);">
+        <div class="card card-pad"><h4 style="margin-bottom:16px;">National Fraud Volume</h4><canvas id="volChart" height="200"></canvas></div>
+        <div class="card card-pad">
+          <h4 style="margin-bottom:16px;">System Health</h4>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>API Gateway</span><span class="chip chip-resolved">Operational</span></div>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>Bank Integrations</span><span class="chip chip-resolved">Operational</span></div>
+          <div class="flex justify-between text-sm" style="margin-bottom:8px;"><span>Telecom Integrations</span><span class="chip chip-progress">Degraded</span></div>
+          <div class="flex justify-between text-sm"><span>Notification Service</span><span class="chip chip-resolved">Operational</span></div>
+          <a href="system-health.html" class="btn btn-secondary btn-block" style="margin-top:16px;">View Full Status</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4>Institution Performance</h4><a href="institution-management.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">Manage →</a></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Institution</th><th>Type</th><th>Cases</th><th>SLA Compliance</th><th>Status</th></tr></thead>
+            <tbody id="instBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','dashboard',{pageTitle:'Dashboard'});
+  
+  const totalCases = CS_DATA.cases.length;
+  const totalInsts = CS_DATA.institutions.length;
+  const totalUsers = CS_DATA.users.length;
+
+  document.querySelectorAll('.stat-card .stat-value')[0].textContent = totalInsts;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = totalUsers;
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = "99.99%";
+  document.querySelectorAll('.stat-card .stat-value')[3].textContent = totalCases;
+
+  document.querySelectorAll('.stat-card .stat-delta').forEach(el => el.style.display = 'none');
+
+  const a = CS_DATA.analytics;
+  function handleEmptyChart(canvasId, labels, values) {
+    if (!values || values.length === 0) {
+      const canvas = document.getElementById(canvasId);
+      canvas.style.display = 'none';
+      const card = canvas.closest('.card');
+      const msg = document.createElement('div');
+      msg.style.padding = '48px 24px';
+      msg.style.textAlign = 'center';
+      msg.style.color = 'var(--text-secondary)';
+      msg.innerHTML = '<p>Analytics will appear when data becomes available.</p>';
+      card.appendChild(msg);
+      return true;
+    }
+    return false;
+  }
+
+  if (!handleEmptyChart('volChart', a.monthlyFrauds.labels, a.monthlyFrauds.values)) {
+    new Chart(document.getElementById('volChart'), {type:'bar', data:{labels:a.monthlyFrauds.labels, datasets:[{data:a.monthlyFrauds.values, backgroundColor:'#12A79A', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+  }
+
+  const instBody = document.getElementById('instBody');
+  if (CS_DATA.institutions.length === 0) {
+    instBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    instBody.innerHTML = CS_DATA.institutions.map(i=>`
+      <tr>
+        <td>${i.name}</td>
+        <td class="text-sm">${i.type}</td>
+        <td class="text-sm">${i.cases}</td>
+        <td class="text-sm">${i.slaCompliance}%</td>
+        <td>${CS_chip(i.status==='Active'?'Active':'Under Review')}</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>
+

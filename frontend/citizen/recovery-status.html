@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovery Status — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>.recovery-step{ display:flex; gap:16px; padding:20px 0; border-bottom:1px solid var(--border); }
+.recovery-step:last-child{ border-bottom:none; }
+.rs-icon{ width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:var(--success-soft); color:var(--success); }
+.rs-icon.pending{ background:var(--surface-sunken); color:var(--text-muted); }
+</style>
+</head>
+<body data-page="recovery-status">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Recovery Status</h2><p>Track how far your frozen funds are from being recovered.</p></div></div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr;">
+        <div class="card card-pad">
+        <div class="card card-pad" id="recoveryCard">
+          <div class="flex justify-between items-center" style="margin-bottom:20px;">
+            <div><strong style="font-size:15px;" id="caseHeaderLabel">Case</strong><div class="text-xs text-muted" id="caseAmountsLabel"></div></div>
+            <span class="chip" id="caseStatusChip"></span>
+          </div>
+          <div class="progress" style="margin-bottom:24px;"><span id="recoveryProgressBar" style="width:0%;"></span></div>
+          <div id="recoveryStepsContainer"></div>
+        </div>
+        </div>
+
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">What you can do</h5>
+          <p class="text-sm text-secondary" style="margin-bottom:16px;">Recovery timelines depend on court/adjudication processes. You don't need to take further action right now.</p>
+          <a href="messages.html" class="btn btn-secondary btn-block" style="margin-bottom:10px;">Ask a Question</a>
+          <a href="support.html" class="btn btn-ghost btn-block">Recovery FAQ</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script>  CS_renderShell('citizen','recovery-status',{pageTitle:'Recovery Status'});
+
+  const myName = CS_DATA.currentUser && CS_DATA.currentUser.citizen && CS_DATA.currentUser.citizen.name;
+  let citizenCases;
+  if (!myName) {
+    citizenCases = CS_DATA.cases;
+  } else {
+    const byName = CS_DATA.cases.filter(x => x.victim === myName || x.victim === 'Citizen Victim');
+    citizenCases = byName.length > 0 ? byName : CS_DATA.cases;
+  }
+  const c = citizenCases[0];
+
+  if (!c) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Recovery Status</h2>
+          <p>Track how far your frozen funds are from being recovered.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">📂</div>
+        <h4>No cases found.</h4>
+        <p class="text-sm text-secondary" style="margin-top:8px;">You have no reported cases to track recovery status.</p>
+      </div>
+    `;
+  } else {
+    document.getElementById('caseHeaderLabel').textContent = `Case ${c.id}`;
+    
+    let amountFrozen = 0;
+    if (c.status === "Funds Frozen" || c.status === "Resolved") {
+      amountFrozen = c.amount;
+    } else {
+      const approved = CS_DATA.freezeRequests.filter(f => f.caseId === c.id && f.status === "Approved");
+      amountFrozen = approved.reduce((sum, f) => sum + f.amount, 0);
+    }
+    
+    document.getElementById('caseAmountsLabel').textContent = `${CS_DATA.fmtINR(c.amount)} reported · ${CS_DATA.fmtINR(amountFrozen)} frozen`;
+    
+    const sChip = document.getElementById('caseStatusChip');
+    sChip.textContent = c.status;
+    sChip.className = 'chip';
+    if (c.status === 'Investigation') sChip.classList.add('chip-open');
+    else if (c.status === 'Freeze Requested') sChip.classList.add('chip-progress');
+    else if (c.status === 'Funds Frozen') sChip.classList.add('chip-frozen');
+    else if (c.status === 'Resolved') sChip.classList.add('chip-resolved');
+    else sChip.classList.add('chip-neutral');
+
+    const progressMap = {
+      "Pending": 10,
+      "Under Review": 20,
+      "Freeze Requested": 35,
+      "Investigation": 55,
+      "Funds Frozen": 75,
+      "Resolved": 100
+    };
+    const progressVal = progressMap[c.status] || 50;
+    document.getElementById('recoveryProgressBar').style.width = `${progressVal}%`;
+
+    const dateStr = new Date(c.filedOn).toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    const step1Done = !["Pending", "Under Review"].includes(c.status);
+    const step2Done = ["Investigation", "Funds Frozen", "Resolved"].includes(c.status);
+    const step3Done = ["Resolved"].includes(c.status);
+    const step4Done = ["Resolved"].includes(c.status);
+
+    document.getElementById('recoveryStepsContainer').innerHTML = `
+      <div class="recovery-step">
+        <div class="rs-icon ${step1Done ? '' : 'pending'}">${step1Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Complaint verified by source bank</strong><p class="text-xs text-muted" style="margin-top:2px;">${c.sourceBank} confirmed the originating transaction on ${dateStr}.</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step2Done ? '' : 'pending'}">${step2Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Freeze request approved</strong><p class="text-xs text-muted" style="margin-top:2px;">${step2Done ? `${c.destBank} placed a hold on the beneficiary account.` : `Awaiting freeze approval from ${c.destBank}.`}</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step3Done ? '' : 'pending'}">${step3Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Investigation & adjudication</strong><p class="text-xs text-muted" style="margin-top:2px;">${step3Done ? 'Cyber Crime Dept. completed evidence review and authorized release.' : 'Cyber Crime Dept. reviewing evidence before authorizing release.'}</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step4Done ? '' : 'pending'}">${step4Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Funds released to victim account</strong><p class="text-xs text-muted" style="margin-top:2px;">${step4Done ? 'Funds successfully credited back to your account.' : 'Estimated 7–10 business days after adjudication.'}</p></div>
+      </div>
+    `;
+  }</script>
+</body>
+</html>

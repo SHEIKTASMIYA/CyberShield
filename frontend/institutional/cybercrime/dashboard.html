@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Bengaluru East Cyber Cell</h2><p>Command overview — Insp. Priya Nair</p></div>
+        <div class="page-actions"><a href="fraud-network-graph.html" class="btn btn-secondary">Fraud Network Graph</a><a href="all-cases.html" class="btn btn-primary">View All Cases</a></div>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Active Cases</span><span class="stat-value" data-dynamic-stat="cyber-active-cases"></span><span class="stat-delta down">6 critical priority</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Recovery Rate</span><span class="stat-value">53%</span><span class="stat-delta up">+4pts this month</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Avg. Response Time</span><span class="stat-value">3.8 hrs</span><span class="stat-delta up">Down from 4.5 hrs</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Amount Under Investigation</span><span class="stat-value mono">₹58.2L</span><span class="stat-delta down">Across all open cases</span></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr; align-items:start;">
+        <div class="card">
+          <div class="card-header"><h4>Priority Queue</h4><a href="priority-queue.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View all →</a></div>
+          <div class="table-wrap" style="border:none; border-radius:0;">
+            <table class="data-table">
+              <thead><tr><th>Case ID</th><th>Victim</th><th>Amount</th><th>Priority</th><th>Officer</th><th>Status</th></tr></thead>
+              <tbody id="body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <h4 style="margin-bottom:16px;">Fraud Categories (30 days)</h4>
+          <canvas id="catChart" height="220"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:var(--sp-6);">
+        <div class="card card-pad"><h4 style="margin-bottom:16px;">Monthly Case Volume</h4><canvas id="volChart" height="200"></canvas></div>
+        <div class="card card-pad"><h4 style="margin-bottom:16px;">Recovery Rate Trend</h4><canvas id="recChart" height="200"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','dashboard',{pageTitle:'Dashboard'});
+  const user = CS_DATA.currentUser.cybercrime;
+  const orgName = user && user.org ? user.org : "Bengaluru East Cyber Cell";
+  const userName = user && user.name ? user.name : "Insp. Priya Nair";
+  document.querySelector('.page-head h2').textContent = orgName;
+  document.querySelector('.page-head p').textContent = `Command overview — ${userName}`;
+
+  const activeCases = CS_DATA.cases.filter(c => c.status !== 'Resolved' && c.status !== 'Closed');
+  const criticalCount = activeCases.filter(c => c.priority === 'Critical').length;
+  const activeSum = activeCases.reduce((sum, c) => sum + c.amount, 0);
+
+  document.querySelector('[data-dynamic-stat="cyber-active-cases"]').textContent = activeCases.length;
+  document.querySelector('.stat-card .stat-delta').textContent = `${criticalCount} critical priority`;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = "—";
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = "—";
+  document.querySelectorAll('.stat-card .stat-value')[3].textContent = CS_DATA.fmtINR(activeSum);
+
+  const body = document.getElementById('body');
+  const priorityQueueCases = CS_DATA.cases.filter(c=>c.priority==='Critical'||c.priority==='High');
+  if (priorityQueueCases.length === 0) {
+    body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    body.innerHTML = priorityQueueCases.map(c=>`
+      <tr class="row-link" onclick="window.location.href='investigation-timeline.html?caseId=${c.id}'">
+        <td class="mono text-sm">${c.id}</td>
+        <td class="text-sm">${c.victim}</td>
+        <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+        <td>${CS_priorityChip(c.priority)}</td>
+        <td class="text-sm">${c.officer}</td>
+        <td>${CS_chip(c.status)}</td>
+      </tr>`).join('');
+  }
+
+  const a = CS_DATA.analytics;
+  function handleEmptyChart(canvasId, labels, values) {
+    if (!values || values.length === 0) {
+      const canvas = document.getElementById(canvasId);
+      canvas.style.display = 'none';
+      const card = canvas.closest('.card');
+      const msg = document.createElement('div');
+      msg.style.padding = '48px 24px';
+      msg.style.textAlign = 'center';
+      msg.style.color = 'var(--text-secondary)';
+      msg.innerHTML = '<p>Analytics will appear when data becomes available.</p>';
+      card.appendChild(msg);
+      return true;
+    }
+    return false;
+  }
+
+  if (!handleEmptyChart('catChart', a.fraudCategories.labels, a.fraudCategories.values)) {
+    new Chart(document.getElementById('catChart'), {type:'doughnut', data:{labels:a.fraudCategories.labels, datasets:[{data:a.fraudCategories.values, backgroundColor:['#0D8C82','#3CC4B6','#2A63C7','#D97706','#DC2626','#7FDCD0','#44577F']}]}, options:{plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}}}}});
+  }
+  if (!handleEmptyChart('volChart', a.monthlyFrauds.labels, a.monthlyFrauds.values)) {
+    new Chart(document.getElementById('volChart'), {type:'bar', data:{labels:a.monthlyFrauds.labels, datasets:[{data:a.monthlyFrauds.values, backgroundColor:'#12A79A', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+  }
+  if (!handleEmptyChart('recChart', a.recoveryRate.labels, a.recoveryRate.values)) {
+    new Chart(document.getElementById('recChart'), {type:'line', data:{labels:a.recoveryRate.labels, datasets:[{data:a.recoveryRate.values, borderColor:'#0D8C82', backgroundColor:'rgba(18,167,154,.15)', fill:true, tension:.35}]}, options:{plugins:{legend:{display:false}}}});
+  }
+</script>
+</body>
+</html>
+

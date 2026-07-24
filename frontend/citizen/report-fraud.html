@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Fraud — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>
+  .steps-row{ display:flex; align-items:center; gap:0; margin-bottom:var(--sp-8); max-width:680px; }
+  .step-node{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; position:relative; }
+  .step-node .dot{ width:32px; height:32px; border-radius:50%; background:var(--surface); border:2px solid var(--border-strong); color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; z-index:1; transition:all .2s; }
+  .step-node.active .dot{ border-color:var(--accent); color:var(--accent-strong); background:var(--accent-soft); }
+  .step-node.done .dot{ border-color:var(--accent); background:var(--accent); color:#fff; }
+  .step-node span.lbl{ font-size:11px; font-weight:600; color:var(--text-muted); }
+  .step-node.active span.lbl{ color:var(--text-primary); }
+  .step-line{ flex:1; height:2px; background:var(--border); margin-top:-24px; }
+  .upload-zone{ border:2px dashed var(--border-strong); border-radius:var(--r-lg); padding:36px; text-align:center; color:var(--text-secondary); background:var(--surface-sunken); cursor:pointer; transition:border-color .2s; }
+  .upload-zone:hover{ border-color:var(--accent); }
+  .upload-zone svg{ width:32px; height:32px; margin:0 auto 12px; color:var(--text-muted); display:block; }
+  .form-panel{ max-width:680px; }
+  .step-panel{ display:none; }
+  .step-panel.active{ display:block; }
+  .file-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface-sunken); border-radius:var(--r-md); margin-top:8px; }
+  .file-item .file-info{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .file-item .file-remove{ background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; line-height:1; padding:0 4px; }
+  .file-item .file-remove:hover{ color:var(--danger); }
+  .review-row{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .review-row:last-child{ border-bottom:none; }
+  .review-row .label{ color:var(--text-muted); }
+</style>
+</head>
+<body data-page="report-fraud">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+
+      <div class="page-head"><div><h2>Report a Fraud</h2><p>Give us the details as accurately as you can — this speeds up freeze requests and recovery.</p></div></div>
+
+      <div class="steps-row">
+        <div class="step-node active" data-step="1"><div class="dot">1</div><span class="lbl">Transaction</span></div>
+        <div class="step-line"></div>
+        <div class="step-node" data-step="2"><div class="dot">2</div><span class="lbl">Details</span></div>
+        <div class="step-line"></div>
+        <div class="step-node" data-step="3"><div class="dot">3</div><span class="lbl">Evidence</span></div>
+        <div class="step-line"></div>
+        <div class="step-node" data-step="4"><div class="dot">4</div><span class="lbl">Review</span></div>
+      </div>
+
+      <div class="card form-panel">
+        <div class="card-body">
+
+          <!-- Step 1: Transaction Details -->
+          <div class="step-panel active" id="panel-1">
+            <h4 style="margin-bottom:20px;">Transaction details</h4>
+            <div class="grid grid-2">
+              <div class="field">
+                <label>Transaction amount (₹) <span style="color:var(--danger)">*</span></label>
+                <input class="input" id="f_amount" type="number" min="1" placeholder="e.g. 48500">
+              </div>
+              <div class="field">
+                <label>Date &amp; time of transaction</label>
+                <input class="input" id="f_txdate" type="datetime-local">
+              </div>
+              <div class="field">
+                <label>Payment channel</label>
+                <select class="select input" id="f_channel">
+                  <option>UPI</option>
+                  <option>Net Banking</option>
+                  <option>Debit Card</option>
+                  <option>Credit Card</option>
+                  <option>RTGS / NEFT</option>
+                  <option>QR Fraud</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Your bank (source bank)</label>
+                <select class="select input" id="f_sourcebank">
+                  <option>HDFC Bank</option>
+                  <option>ICICI Bank</option>
+                  <option>State Bank of India</option>
+                  <option>Axis Bank</option>
+                  <option>Kotak Mahindra</option>
+                  <option>Punjab National Bank</option>
+                  <option>Bank of Baroda</option>
+                  <option>Yes Bank</option>
+                  <option>IndusInd Bank</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Destination / Fraudster's bank</label>
+                <select class="select input" id="f_destbank">
+                  <option>Yes Bank</option>
+                  <option>HDFC Bank</option>
+                  <option>ICICI Bank</option>
+                  <option>State Bank of India</option>
+                  <option>Axis Bank</option>
+                  <option>Paytm Payments Bank</option>
+                  <option>Airtel Payments Bank</option>
+                  <option>Unknown</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Telecom operator</label>
+                <select class="select input" id="f_telecom">
+                  <option>Airtel</option>
+                  <option>Jio</option>
+                  <option>Vi (Vodafone Idea)</option>
+                  <option>BSNL</option>
+                  <option>Unknown</option>
+                </select>
+              </div>
+              <div class="field" style="grid-column:1/-1;">
+                <label>Beneficiary UPI ID / Account number <span style="color:var(--danger)">*</span></label>
+                <input class="input" id="f_beneficiary" type="text" placeholder="e.g. fraud88@ybl or account number">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: What Happened -->
+          <div class="step-panel" id="panel-2">
+            <h4 style="margin-bottom:20px;">What happened?</h4>
+            <div class="field">
+              <label>Fraud category</label>
+              <select class="select input" id="f_category">
+                <option>UPI Fraud</option>
+                <option>Investment Scam</option>
+                <option>Loan App Scam</option>
+                <option>Job Scam</option>
+                <option>Card Skimming</option>
+                <option>QR Code Fraud</option>
+                <option>Phishing</option>
+                <option>Vishing (Voice Call Scam)</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Describe what happened <span style="color:var(--danger)">*</span></label>
+              <textarea class="input" id="f_desc" rows="5" placeholder="e.g. I received a call claiming to be from my bank asking me to verify KYC via OTP..."></textarea>
+            </div>
+            <div class="field">
+              <label>Suspect's phone number (if known)</label>
+              <input class="input" id="f_phone" type="tel" placeholder="+91">
+            </div>
+            <div class="field">
+              <label>Your district / city</label>
+              <input class="input" id="f_district" type="text" placeholder="e.g. Bengaluru East">
+            </div>
+          </div>
+
+          <!-- Step 3: Evidence Upload -->
+          <div class="step-panel" id="panel-3">
+            <h4 style="margin-bottom:20px;">Upload evidence <span class="text-sm text-muted" style="font-weight:400;">(optional)</span></h4>
+            <input type="file" id="reportFileInput" accept=".pdf,.png,.jpg,.jpeg,.mp4,.mp3,.doc,.docx" multiple style="display:none;">
+            <div class="upload-zone" id="reportUploadZone" style="margin-bottom:16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+              <div style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">Drag &amp; drop files, or click to browse</div>
+              <div class="text-xs">Screenshots, call recordings, bank statements — PDF, PNG, JPG, MP3, DOCX up to 25MB</div>
+            </div>
+            <div id="reportFileList"></div>
+          </div>
+
+          <!-- Step 4: Review & Submit -->
+          <div class="step-panel" id="panel-4">
+            <h4 style="margin-bottom:16px;">Review &amp; submit</h4>
+            <p class="text-sm text-secondary" style="margin-bottom:20px;">Please confirm the details below are accurate. Filing a false report is a punishable offense under IT Act provisions.</p>
+            <div class="card" style="background:var(--surface-sunken); border:none;">
+              <div class="card-body" id="reviewCardBody" style="font-size:13.5px;">
+                <!-- Populated by updateReviewStep() -->
+              </div>
+            </div>
+            <label class="flex items-center gap-2 text-sm" style="margin-top:20px; color:var(--text-secondary); cursor:pointer;">
+              <input type="checkbox" id="confirmCheckbox" style="width:16px;height:16px;"> I confirm this information is true to the best of my knowledge.
+            </label>
+          </div>
+
+        </div>
+        <div class="modal-foot" style="justify-content:space-between;">
+          <button class="btn btn-secondary" id="backBtn" onclick="changeStep(-1)" disabled>← Back</button>
+          <button class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">Continue →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/petra-wallet-tracker.js"></script>
+<script>
+  CS_renderShell('citizen', 'report-fraud', { pageTitle: 'Report Fraud' });
+
+  // Prefill form if triggered from Petra Wallet Alert or URL query params
+  (function handleUrlPrefill() {
+    const p = new URLSearchParams(window.location.search);
+    const txHash = p.get('txHash');
+    const rawAmt = p.get('amount');
+    const recipient = p.get('recipient');
+    const channel = p.get('channel');
+    const sourceBank = p.get('sourceBank');
+
+    if (txHash || recipient || rawAmt) {
+      if (rawAmt) {
+        const val = parseFloat(rawAmt);
+        const aptVal = val > 1000 ? (val / 100000000) : val;
+        // Approximate APT to INR or display nominal value
+        document.getElementById('f_amount').value = Math.max(1, Math.round(aptVal * 12000)) || 8500;
+      }
+      if (channel) {
+        const chSelect = document.getElementById('f_channel');
+        let opt = [...chSelect.options].find(o => o.text.toLowerCase().includes('aptos') || o.text.toLowerCase().includes('crypto'));
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.text = 'Aptos Crypto Transfer';
+          chSelect.add(opt);
+        }
+        chSelect.value = opt.text;
+      }
+      if (sourceBank) {
+        const sbSelect = document.getElementById('f_sourcebank');
+        let opt = [...sbSelect.options].find(o => o.text.includes('Petra'));
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.text = 'Petra Wallet (Aptos)';
+          sbSelect.add(opt);
+        }
+        sbSelect.value = opt.text;
+      }
+      if (recipient) {
+        document.getElementById('f_beneficiary').value = recipient;
+      }
+
+      document.getElementById('f_category').value = 'Phishing';
+      document.getElementById('f_desc').value = `Unauthorized Petra Wallet transfer detected on Aptos Testnet.\nTx Hash: ${txHash || 'N/A'}\nRecipient Address: ${recipient || 'N/A'}\nPlease freeze / investigate this Web3 wallet transaction immediately.`;
+
+      if (window.CS_toast) {
+        window.CS_toast("Petra Transaction Auto-filled", "Form populated with Aptos Testnet transfer details.", "success");
+      }
+    }
+  })();
+
+  let step = 1;
+  const attachedFiles = [];
+
+  // ── Step Navigation ─────────────────────────────────────────────────────────
+  function changeStep(dir) {
+    if (dir > 0 && !validateStep(step)) return;
+
+    const next = step + dir;
+    if (next < 1 || next > 4) return;
+
+    document.getElementById('panel-' + step).classList.remove('active');
+    document.querySelector(`.step-node[data-step="${step}"]`).classList[dir > 0 ? 'add' : 'remove']('done');
+
+    step = next;
+    document.getElementById('panel-' + step).classList.add('active');
+    document.querySelectorAll('.step-node').forEach(n => n.classList.remove('active'));
+    document.querySelector(`.step-node[data-step="${step}"]`).classList.add('active');
+    document.getElementById('backBtn').disabled = (step === 1);
+
+    if (step === 4) {
+      updateReviewStep();
+      document.getElementById('nextBtn').textContent = 'Submit Report →';
+      document.getElementById('nextBtn').onclick = submitReport;
+    } else {
+      document.getElementById('nextBtn').textContent = 'Continue →';
+      document.getElementById('nextBtn').onclick = () => changeStep(1);
+    }
+  }
+
+  // ── Validation ──────────────────────────────────────────────────────────────
+  function validateStep(s) {
+    if (s === 1) {
+      const amount = parseFloat(document.getElementById('f_amount').value);
+      if (!amount || amount <= 0) {
+        CS_toast('Amount required', 'Please enter the transaction amount.', 'error');
+        document.getElementById('f_amount').focus();
+        return false;
+      }
+      const beneficiary = document.getElementById('f_beneficiary').value.trim();
+      if (!beneficiary) {
+        CS_toast('Beneficiary required', 'Please enter the UPI ID or account number.', 'error');
+        document.getElementById('f_beneficiary').focus();
+        return false;
+      }
+    }
+    if (s === 2) {
+      const desc = document.getElementById('f_desc').value.trim();
+      if (!desc) {
+        CS_toast('Description required', 'Please describe what happened.', 'error');
+        document.getElementById('f_desc').focus();
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ── Review Step ─────────────────────────────────────────────────────────────
+  function updateReviewStep() {
+    const amount   = parseFloat(document.getElementById('f_amount').value) || 0;
+    const channel  = document.getElementById('f_channel').value;
+    const srcBank  = document.getElementById('f_sourcebank').value;
+    const destBank = document.getElementById('f_destbank').value;
+    const beneficiary = document.getElementById('f_beneficiary').value || '—';
+    const category = document.getElementById('f_category').value;
+    const desc     = document.getElementById('f_desc').value || '—';
+    const district = document.getElementById('f_district').value || 'Not specified';
+    const filesCount = attachedFiles.length;
+
+    document.getElementById('reviewCardBody').innerHTML = `
+      <div class="review-row"><span class="label">Amount</span><strong class="mono">${CS_DATA.fmtINR(amount)}</strong></div>
+      <div class="review-row"><span class="label">Channel</span><strong>${channel}</strong></div>
+      <div class="review-row"><span class="label">Source Bank</span><strong>${srcBank}</strong></div>
+      <div class="review-row"><span class="label">Destination Bank</span><strong>${destBank}</strong></div>
+      <div class="review-row"><span class="label">Beneficiary</span><strong class="mono" style="font-size:12.5px;">${beneficiary}</strong></div>
+      <div class="review-row"><span class="label">Fraud Category</span><strong>${category}</strong></div>
+      <div class="review-row"><span class="label">District</span><strong>${district}</strong></div>
+      <div class="review-row"><span class="label">Description</span><span style="max-width:300px; text-align:right; color:var(--text-secondary);">${desc.substring(0,120)}${desc.length>120?'…':''}</span></div>
+      <div class="review-row"><span class="label">Evidence files</span><strong>${filesCount} file(s)</strong></div>
+    `;
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+  async function submitReport() {
+    const checkbox = document.getElementById('confirmCheckbox');
+    if (!checkbox || !checkbox.checked) {
+      CS_toast('Confirmation required', 'Please check the confirmation box to proceed.', 'error');
+      return;
+    }
+
+    // Collect form values
+    const amountVal    = parseFloat(document.getElementById('f_amount').value) || 0;
+    const channelVal   = document.getElementById('f_channel').value;
+    const sourceBank   = document.getElementById('f_sourcebank').value;
+    const destBank     = document.getElementById('f_destbank').value;
+    const telecom      = document.getElementById('f_telecom').value;
+    const beneficiary  = document.getElementById('f_beneficiary').value.trim() || 'N/A';
+    const categoryVal  = document.getElementById('f_category').value;
+    const descVal      = document.getElementById('f_desc').value.trim();
+    const phoneVal     = document.getElementById('f_phone').value.trim();
+    const districtVal  = document.getElementById('f_district').value.trim() || 'Not specified';
+
+    // Current citizen name from persisted state
+    const victimName = (
+      CS_DATA.currentUser &&
+      CS_DATA.currentUser.citizen &&
+      CS_DATA.currentUser.citizen.name
+    ) || 'Citizen Victim';
+
+    const newCaseId  = `CC-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const filedOnStr = new Date().toISOString();
+
+    const caseData = {
+      id:                newCaseId,
+      priority:          amountVal >= 100000 ? 'Critical' : (amountVal >= 50000 ? 'High' : 'Medium'),
+      status:            'Pending',
+      victim:            victimName,
+      amount:            amountVal,
+      filedOn:           filedOnStr,
+      channel:           channelVal,
+      sourceBank:        sourceBank,
+      destBank:          destBank,
+      telecom:           telecom,
+      officer:           'Unassigned',
+      district:          districtVal,
+      summary:           descVal || `Reported ${categoryVal}. Amount: ${CS_DATA.fmtINR(amountVal)}.`,
+      tags:              [categoryVal],
+      anomalyScore:      70 + Math.floor(Math.random() * 25),
+      slaRemainingHours: 24.0,
+      sourceAccount:     'XXXX-XXXX-1111',
+      beneficiaryAccount: beneficiary.includes('@') ? 'N/A' : beneficiary,
+      beneficiaryUpi:    beneficiary.includes('@') ? beneficiary : 'N/A',
+      suspectPhone:      phoneVal || 'N/A'
+    };
+
+    // 1. Save to local state immediately (always works, even without backend)
+    CS_DATA.addCase(caseData);
+
+    // 2. Also add evidence items to local state
+    attachedFiles.forEach(file => {
+      const sz  = file.size > 1024*1024 ? (file.size/(1024*1024)).toFixed(1)+' MB' : (file.size/1024).toFixed(1)+' KB';
+      const ext = file.name.split('.').pop().toLowerCase();
+      const typeMap = { pdf:'pdf', png:'image', jpg:'image', jpeg:'image', mp4:'video', mp3:'audio', doc:'doc', docx:'docx' };
+      CS_DATA.addEvidenceItem({
+        id:         'EV-' + Math.floor(100 + Math.random()*900),
+        caseId:     newCaseId,
+        name:       file.name,
+        type:       typeMap[ext] || 'pdf',
+        size:       sz,
+        uploadedOn: filedOnStr,
+        by:         victimName,
+        note:       'Attached on initial filing.'
+      });
+    });
+
+    // 3. Try backend / Firebase (non-blocking, best-effort)
+    try {
+      if (window.CS_FIREBASE && window.CS_FIREBASE.ready) {
+        await window.CS_FIREBASE.ready;
+        const fbUser = window.CS_FIREBASE.auth.currentUser;
+        if (fbUser) {
+          const token = await fbUser.getIdToken();
+          let backendSaved = false;
+
+          try {
+            const res = await fetch('http://localhost:5000/api/cases', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify(caseData)
+            });
+            if (res.ok) backendSaved = true;
+          } catch(e){ console.warn('Backend save failed:', e); }
+
+          if (!backendSaved) {
+            const db = window.CS_FIREBASE.db;
+            const { doc, setDoc, collection, addDoc, serverTimestamp } = await import(
+              'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'
+            );
+            await setDoc(doc(db, 'cases', newCaseId), { ...caseData, createdAt: serverTimestamp() });
+            await addDoc(collection(db, 'timelines'), {
+              caseId: newCaseId, time: filedOnStr.substring(0,16).replace('T',' '),
+              title: 'Fraud reported by victim', desc: 'Filed via CyberShield portal.', done: true
+            });
+          }
+        }
+      }
+    } catch(dbErr) {
+      console.warn('Remote save skipped (offline or no auth):', dbErr);
+    }
+
+    // 4. Navigate to Case Details
+    CS_toast('Report submitted!', `Case ${newCaseId} created successfully.`, 'success');
+    setTimeout(() => {
+      window.location.href = `case-details.html?caseId=${newCaseId}`;
+    }, 1000);
+  }
+
+  // ── File Upload ─────────────────────────────────────────────────────────────
+  const uploadZone  = document.getElementById('reportUploadZone');
+  const fileInput   = document.getElementById('reportFileInput');
+  const fileList    = document.getElementById('reportFileList');
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor='var(--accent)'; });
+  uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor='var(--border-strong)'; });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--border-strong)';
+    if (e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', e => { if (e.target.files && e.target.files.length) addFiles(e.target.files); });
+
+  function addFiles(files) {
+    Array.from(files).forEach(f => {
+      attachedFiles.push(f);
+      const sz   = f.size > 1024*1024 ? (f.size/(1024*1024)).toFixed(1)+' MB' : (f.size/1024).toFixed(1)+' KB';
+      const ext  = f.name.split('.').pop().toLowerCase();
+      const icon = { pdf:'📄', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', mp4:'🎬', mp3:'🎧', doc:'📝', docx:'📝' }[ext] || '📄';
+      const idx  = attachedFiles.length - 1;
+      const div  = document.createElement('div');
+      div.className = 'file-item';
+      div.dataset.fileIdx = idx;
+      div.innerHTML = `
+        <span class="file-info">${icon} <span>${f.name}</span></span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="text-xs text-muted">${sz}</span>
+          <button class="file-remove" title="Remove" onclick="removeFile(${idx}, this.closest('.file-item'))">✕</button>
+        </div>`;
+      fileList.appendChild(div);
+    });
+  }
+
+  function removeFile(idx, el) {
+    attachedFiles.splice(idx, 1);
+    el.remove();
+  }
+</script>
+</body>
+</html>

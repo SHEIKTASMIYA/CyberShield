@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Complaint — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+.kv:last-child{ border-bottom:none; } .kv span:first-child{ color:var(--text-muted); }</style>
+</head>
+<body data-page="complaint-verification">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="breadcrumbs"><a href="pending-complaints.html">Pending Complaints</a><span class="sep">/</span><span class="current" id="breadcrumbCaseId">CC-2026-08841</span></div>
+      <div class="page-head">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 id="caseIdTitle" class="mono" style="font-size:24px;">CC-2026-08841</h2>
+            <span id="priorityChip" class="chip">Critical</span>
+          </div>
+          <p id="caseSubtitle">Rohit Malhotra · UPI Fraud · Filed 14 Jul 2026, 09:22</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" id="freezeSourceBtn">Freeze Source Account</button>
+          <button class="btn btn-secondary" data-toast-success="Marked for review" data-toast-sub="Flagged to compliance team">Flag for Review</button>
+          <a id="verifyLink" href="generate-freeze-request.html" class="btn btn-primary">Verify & Generate Freeze Request</a>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">Transaction Details</h5>
+          <div class="kv"><span>Amount</span><span id="txAmount" class="mono">₹4,85,000</span></div>
+          <div class="kv"><span>Account (source)</span><span><span id="txSourceAccount" class="mono">XXXX-XXXX-2214</span><span id="sourceAccountStatus" class="chip chip-open" style="margin-left: 8px; font-size:11px; padding:2px 8px;">Active</span></span></div>
+          <div class="kv"><span>Channel</span><span id="txChannel">UPI</span></div>
+          <div class="kv"><span id="txBeneficiaryLabel">Beneficiary UPI ID</span><span id="txBeneficiaryValue" class="mono">fraud88@ybl</span></div>
+          <div class="kv"><span>Destination Bank</span><span id="txDestBank">Yes Bank</span></div>
+          <div class="kv"><span>Timestamp</span><span id="txTimestamp">14 Jul 2026, 09:16 IST</span></div>
+          <div class="kv"><span>Device / IP</span><span id="txDeviceIp" class="mono">103.21.x.x</span></div>
+
+          <hr class="divider">
+          <h5 style="margin-bottom:14px;">Victim's Statement</h5>
+          <p id="victimStatementText" class="text-sm text-secondary" style="line-height:1.7;">"I received a call from someone claiming to be HDFC Bank support, saying my KYC needed urgent update or my account would be blocked. They asked me to share an OTP to 'verify' my identity, and shortly after, ₹4.85 lakh was debited from my account."</p>
+        </div>
+
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">Verification Checklist</h5>
+          <label class="flex items-center gap-2 text-sm" style="margin-bottom:12px;"><input type="checkbox" checked style="width:16px;height:16px;"> Account ownership confirmed</label>
+          <label class="flex items-center gap-2 text-sm" style="margin-bottom:12px;"><input type="checkbox" checked style="width:16px;height:16px;"> Transaction matches bank records</label>
+          <label class="flex items-center gap-2 text-sm" style="margin-bottom:12px;"><input type="checkbox" checked style="width:16px;height:16px;"> No prior dispute on this transaction</label>
+          <label class="flex items-center gap-2 text-sm" style="margin-bottom:20px;"><input type="checkbox" style="width:16px;height:16px;"> KYC documents reviewed</label>
+          <div class="field"><label>Internal note</label><textarea class="input" rows="3" placeholder="Add a note for the case file…"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','complaint-verification',{pageTitle:'Complaint Verification'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeCaseId = params.get('caseId') || "CC-2026-08841";
+  const c = CS_DATA.cases.find(x => x.id === activeCaseId) || CS_DATA.cases[0];
+
+  if (!c) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Verify Complaint</h2>
+          <p>No active complaint selected for verification.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔍</div>
+        <h4>No complaint found</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          There are no complaints matching this identifier to verify.
+        </p>
+      </div>
+    `;
+  } else {
+    document.getElementById('breadcrumbCaseId').textContent = c.id;
+    document.getElementById('caseIdTitle').textContent = c.id;
+    
+    const chip = document.getElementById('priorityChip');
+    chip.textContent = c.priority;
+    chip.className = 'chip';
+    if (c.priority === 'Critical') chip.classList.add('chip-critical');
+    else if (c.priority === 'High') chip.classList.add('chip-high');
+    else if (c.priority === 'Medium') chip.classList.add('chip-medium');
+    else chip.classList.add('chip-low');
+
+    const formattedDate = CS_DATA.fmtDate(c.filedOn);
+    document.getElementById('caseSubtitle').textContent = `${c.victim} · ${c.channel} Fraud · Filed ${formattedDate}`;
+
+    document.getElementById('txAmount').textContent = CS_DATA.fmtINR(c.amount);
+    
+    const srcAcc = c.sourceAccount;
+    document.getElementById('txSourceAccount').textContent = srcAcc;
+    
+    document.getElementById('txChannel').textContent = c.channel;
+    
+    const benLabel = ["UPI", "QR Fraud"].includes(c.channel) ? "Beneficiary UPI ID" : "Beneficiary Account";
+    const benValue = ["UPI", "QR Fraud"].includes(c.channel) ? c.beneficiaryUpi : c.beneficiaryAccount;
+    document.getElementById('txBeneficiaryLabel').textContent = benLabel;
+    document.getElementById('txBeneficiaryValue').textContent = benValue;
+    
+    document.getElementById('txDestBank').textContent = c.destBank;
+    document.getElementById('txTimestamp').textContent = `${formattedDate.split(' · ')[0]}, ${formattedDate.split(' · ')[1]} IST`;
+    
+    document.getElementById('txDeviceIp').textContent = "103.21.x.x";
+    document.getElementById('victimStatementText').textContent = `"I received a fraudulent call regarding my ${c.channel} service. I was pressured to authorize a transaction, resulting in ${CS_DATA.fmtINR(c.amount)} being debited from my account and transferred to ${c.destBank}."`;
+
+    const verifyLink = document.getElementById('verifyLink');
+    if (verifyLink) {
+      verifyLink.href = `generate-freeze-request.html?caseId=${c.id}`;
+      verifyLink.addEventListener('click', (e) => {
+        if (!c.sourceAccountFrozen) {
+          e.preventDefault();
+          CS_toast('Verification Blocked', 'You must freeze the source account first to prevent further loss.');
+          return;
+        }
+        CS_DATA.verifyComplaint(c.id);
+      });
+    }
+
+    const freezeBtn = document.getElementById('freezeSourceBtn');
+    const statusChip = document.getElementById('sourceAccountStatus');
+
+    function updateFreezeUI(isFrozen) {
+      if (isFrozen) {
+        statusChip.textContent = 'Frozen';
+        statusChip.className = 'chip chip-critical';
+        freezeBtn.textContent = 'Source Account Frozen';
+        freezeBtn.disabled = true;
+        freezeBtn.style.opacity = '0.7';
+        if (verifyLink) {
+          verifyLink.style.opacity = '1';
+          verifyLink.style.pointerEvents = 'auto';
+          verifyLink.style.cursor = 'pointer';
+        }
+      } else {
+        statusChip.textContent = 'Active';
+        statusChip.className = 'chip chip-open';
+        freezeBtn.textContent = 'Freeze Source Account';
+        freezeBtn.disabled = false;
+        freezeBtn.style.opacity = '1';
+        if (verifyLink) {
+          verifyLink.style.opacity = '0.5';
+          verifyLink.style.pointerEvents = 'auto';
+          verifyLink.style.cursor = 'not-allowed';
+        }
+      }
+    }
+
+    // Init UI state
+    updateFreezeUI(c.sourceAccountFrozen);
+
+    freezeBtn.addEventListener('click', () => {
+      CS_DATA.freezeSourceAccount(c.id);
+      c.sourceAccountFrozen = true; // Update local reference
+      updateFreezeUI(true);
+      CS_toast('Source Account Frozen', `Preventative hold successfully placed on account ${srcAcc}.`);
+    });
+  }
+</script>
+</body>
+</html>

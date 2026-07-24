@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify it's you — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/auth.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+  .mfa-card {
+    width:100%; max-width:440px; padding:48px 40px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; box-shadow:0 8px 48px rgba(0,0,0,.35);
+    text-align:center;
+  }
+  .mfa-icon {
+    width:64px; height:64px; border-radius:18px;
+    background:rgba(18,167,154,.15); color:#12a79a;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 28px;
+  }
+  .mfa-card h2 { margin-bottom:10px; font-size:1.5rem; }
+  .mfa-card p  { color:var(--text-secondary); font-size:.875rem; line-height:1.6; margin:0 0 32px; }
+  .otp-error { color:#f87171; font-size:.825rem; margin-top:-16px; margin-bottom:20px; min-height:20px; }
+  .resend-row { margin-top:20px; font-size:.8rem; color:var(--text-muted); }
+  .resend-row a { color:var(--accent-strong); font-weight:600; cursor:pointer; text-decoration:none; }
+  .resend-row a.disabled { color:var(--text-muted); pointer-events:none; cursor:default; }
+  .timer { font-family:var(--font-mono); font-size:.8rem; color:var(--text-muted); margin-left:4px; }
+  .brand-link { display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:32px; text-decoration:none; color:inherit; }
+  .brand-mark-sm { width:30px; height:30px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body data-page="mfa">
+<div class="mfa-card">
+  <a href="../public/index.html" class="brand-link">
+    <span class="brand-mark-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg></span>
+    <span style="font-weight:800;font-size:15px;">CyberShield</span>
+  </a>
+
+  <div class="mfa-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="5" y="11" width="14" height="10" rx="2"/>
+      <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+    </svg>
+  </div>
+
+  <h2>Verify it's you</h2>
+  <p id="mfaInstructions">We sent a 6-digit verification code to your registered email. Check your inbox or look for it printed in the Flask server terminal.</p>
+
+  <div class="otp-row">
+    <input class="otp-box" id="otp0" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code">
+    <input class="otp-box" id="otp1" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-box" id="otp2" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-box" id="otp3" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-box" id="otp4" maxlength="1" inputmode="numeric" pattern="[0-9]">
+    <input class="otp-box" id="otp5" maxlength="1" inputmode="numeric" pattern="[0-9]">
+  </div>
+
+  <div class="otp-error" id="otpError"></div>
+
+  <button class="btn btn-primary btn-block btn-lg" id="verifyBtn" style="margin-top:4px;">Verify &amp; Continue</button>
+
+  <div class="resend-row">
+    Didn't get a code?
+    <a id="resendLink">Resend Code</a>
+    <span class="timer" id="resendTimer"></span>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  const params   = new URLSearchParams(window.location.search);
+  const uid      = params.get('uid');
+  const email    = params.get('email') || 'your email';
+  const role     = params.get('role');
+  const dest     = params.get('to') || '../citizen/dashboard.html';
+
+  // Show email hint
+  const masked = email.replace(/(.{2})(.*)(@.*)/, (_, a, b, c) => a + b.replace(/./g, '*') + c);
+  document.getElementById('mfaInstructions').innerHTML =
+    `We sent a 6-digit code to <strong>${masked}</strong>.<br>
+     <small style="color:var(--text-muted);">No email configured? Check the <strong>Flask terminal</strong> for your code.</small>`;
+
+  // ── OTP input wiring ──────────────────────────────────────────────────────
+  const inputs = document.querySelectorAll('.otp-box');
+  inputs.forEach((input, i) => {
+    input.addEventListener('input', () => {
+      // Allow only digits
+      input.value = input.value.replace(/[^0-9]/g, '').slice(-1);
+      if (input.value && i < inputs.length - 1) inputs[i + 1].focus();
+      clearError();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus();
+    });
+    input.addEventListener('paste', e => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      pasted.split('').forEach((ch, idx) => {
+        if (inputs[i + idx]) inputs[i + idx].value = ch;
+      });
+      const next = Math.min(i + pasted.length, inputs.length - 1);
+      inputs[next].focus();
+    });
+  });
+
+  // Auto-focus first box on load
+  inputs[0].focus();
+
+  function clearError() { document.getElementById('otpError').textContent = ''; }
+  function showError(msg) { document.getElementById('otpError').textContent = msg; }
+
+  // ── Verify OTP ────────────────────────────────────────────────────────────
+  document.getElementById('verifyBtn').addEventListener('click', verifyOtp);
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') verifyOtp(); });
+
+  async function verifyOtp() {
+    const otp = Array.from(inputs).map(i => i.value).join('');
+    if (otp.length !== 6) { showError('Please enter all 6 digits.'); return; }
+
+    const btn = document.getElementById('verifyBtn');
+    btn.disabled = true;
+    btn.innerText = 'Verifying…';
+    clearError();
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, otp })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'Verification failed. Please try again.');
+        btn.disabled = false;
+        btn.innerText = 'Verify & Continue';
+        return;
+      }
+
+      const profile = data.profile;
+      // Map role to state key
+      const roleMap = { citizen:'citizen', 'source-bank':'sourceBank', 'destination-bank':'destBank', telecom:'telecom', cybercrime:'cybercrime', admin:'admin' };
+      const key = roleMap[role] || roleMap[profile.role] || 'citizen';
+
+      // Save to local & session storage
+      const stateStr = localStorage.getItem('cs_state_v4') || sessionStorage.getItem('cs_state_v4');
+      let state = stateStr ? JSON.parse(stateStr) : {};
+      if (!state.currentUser) {
+        state.currentUser = {
+          citizen:    { name:'', initials:'', email:'', phone:'', role:'Citizen Victim' },
+          sourceBank: { name:'', initials:'', org:'', role:'Fraud Ops Analyst', email:'' },
+          destBank:   { name:'', initials:'', org:'', role:'Freeze Approval Officer', email:'' },
+          telecom:    { name:'', initials:'', org:'', role:'Nodal Officer', email:'' },
+          cybercrime: { name:'', initials:'', org:'', role:'Inspector', email:'' },
+          admin:      { name:'', initials:'', org:'', role:'Platform Administrator', email:'' }
+        };
+      }
+      state.currentUser[key] = profile;
+      localStorage.setItem('cs_state_v4', JSON.stringify(state));
+      sessionStorage.setItem('cs_state_v4', JSON.stringify(state));
+
+      window.location.href = dest;
+    } catch (err) {
+      showError('Network error — make sure the Flask backend is running on port 5000.');
+      btn.disabled = false;
+      btn.innerText = 'Verify & Continue';
+    }
+  }
+
+  // ── Resend Code with 60-second cooldown ───────────────────────────────────
+  let cooldown = 0;
+  let timerInterval = null;
+  const resendLink  = document.getElementById('resendLink');
+  const resendTimer = document.getElementById('resendTimer');
+
+  function startCooldown(seconds) {
+    cooldown = seconds;
+    resendLink.classList.add('disabled');
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      cooldown--;
+      resendTimer.textContent = cooldown > 0 ? `(${cooldown}s)` : '';
+      if (cooldown <= 0) {
+        clearInterval(timerInterval);
+        resendLink.classList.remove('disabled');
+      }
+    }, 1000);
+    resendTimer.textContent = `(${cooldown}s)`;
+  }
+
+  resendLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (resendLink.classList.contains('disabled')) return;
+    resendLink.classList.add('disabled');
+    resendTimer.textContent = '…';
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      if (res.ok) {
+        showError(''); 
+        // Show success hint
+        document.getElementById('otpError').style.color = '#34d399';
+        showError('A new code was sent. Check your email or the Flask terminal.');
+        setTimeout(() => {
+          document.getElementById('otpError').style.color = '#f87171';
+          clearError();
+        }, 4000);
+      } else {
+        showError('Could not resend code. Please refresh and try again.');
+      }
+    } catch {
+      showError('Network error while resending code.');
+    }
+    startCooldown(60);
+  });
+</script>
+</body>
+</html>

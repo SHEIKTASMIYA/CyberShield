@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generate Freeze Request — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="generate-freeze">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Generate Freeze Request</h2><p>Send a freeze request to the destination bank holding the beneficiary account.</p></div></div>
+
+      <div class="grid" style="grid-template-columns:2fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:18px;">Request Details</h5>
+          <div class="grid grid-2">
+            <div class="field"><label>Case ID</label><input id="reqCaseId" class="input mono" value="CC-2026-08841" disabled></div>
+            <div class="field"><label>Amount to freeze</label><input id="reqAmount" class="input mono" value="₹4,85,000"></div>
+            <div class="field"><label>Destination Bank</label><select id="reqDestBank" class="select input"><option>Yes Bank</option><option>Kotak Mahindra</option><option>ICICI Bank</option><option>Axis Bank</option></select></div>
+            <div class="field"><label>Beneficiary Account</label><input id="reqBeneficiaryAccount" class="input mono" placeholder="XXXX-XXXX-4471"></div>
+            <div class="field" style="grid-column:1/-1;"><label>Beneficiary UPI ID</label><input id="reqBeneficiaryUpi" class="input mono" value="fraud88@ybl"></div>
+            <div class="field" style="grid-column:1/-1;"><label>Grounds for freeze request</label><textarea id="reqGrounds" class="input" rows="4">Confirmed fraudulent UPI transaction from verified victim account. Source transaction matches complaint CC-2026-08841. Requesting immediate hold pending investigation.</textarea></div>
+          </div>
+          <label class="flex items-center gap-2 text-sm" style="margin:8px 0 20px; color:var(--text-secondary);">
+            <input type="checkbox" checked style="width:16px;height:16px;"> Mark as urgent (notifies destination bank's duty officer immediately)
+          </label>
+          <button id="submitRequestBtn" class="btn btn-primary btn-lg">Send Freeze Request →</button>
+        </div>
+
+        <div class="card card-pad">
+          <h5 style="margin-bottom:14px;">Case Snapshot</h5>
+          <div class="flex items-center gap-3" style="margin-bottom:16px;">
+            <span id="snapshotAvatar" class="avatar">RM</span><div><strong id="snapshotVictimName" style="font-size:13.5px; display:block;">Rohit Malhotra</strong><span class="text-xs text-muted">Victim</span></div>
+          </div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Priority</span><span id="snapshotPriority" class="chip chip-critical">Critical</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0; border-bottom:1px solid var(--border);"><span class="text-muted">Filed</span><span id="snapshotFiled">14 Jul, 09:22</span></div>
+          <div class="flex justify-between text-sm" style="padding:8px 0;"><span class="text-muted">Officer</span><span id="snapshotOfficer">Insp. Priya Nair</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','generate-freeze',{pageTitle:'Generate Freeze Request'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeCaseId = params.get('caseId') || "CC-2026-08841";
+  const c = CS_DATA.cases.find(x => x.id === activeCaseId) || CS_DATA.cases[0];
+
+  if (!c) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>Generate Freeze Request</h2>
+          <p>No active case selected to generate a freeze request.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">❄️</div>
+        <h4>No cases available for freeze</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          There are no verified cases requiring a freeze request at this time.
+        </p>
+      </div>
+    `;
+  } else {
+    // Populate form fields
+    document.getElementById('reqCaseId').value = c.id;
+    document.getElementById('reqAmount').value = CS_DATA.fmtINR(c.amount);
+    
+    // Set destination bank value in select dropdown
+    const destSelect = document.getElementById('reqDestBank');
+    if (destSelect) {
+      if (![...destSelect.options].some(o => o.text === c.destBank)) {
+        const opt = document.createElement('option');
+        opt.text = c.destBank;
+        destSelect.add(opt);
+      }
+      destSelect.value = c.destBank;
+    }
+
+    document.getElementById('reqBeneficiaryAccount').value = c.beneficiaryAccount;
+    document.getElementById('reqBeneficiaryUpi').value = c.beneficiaryUpi;
+
+    document.getElementById('reqGrounds').value = `Confirmed fraudulent ${c.channel} transaction from verified victim account ${c.sourceAccount}. Source transaction matches complaint ${c.id}. Requesting immediate hold on beneficiary account ${c.beneficiaryAccount} (UPI ID: ${c.beneficiaryUpi}) pending investigation.`;
+
+    // Populate case snapshot
+    function getInitials(name) {
+      if (!name || name === "Unassigned") return "UA";
+      const parts = name.split(' ').filter(p => !p.endsWith('.'));
+      return parts.map(p => p[0]).join('').toUpperCase().substring(0, 2);
+    }
+
+    document.getElementById('snapshotAvatar').textContent = getInitials(c.victim);
+    document.getElementById('snapshotVictimName').textContent = c.victim;
+    
+    const sPriority = document.getElementById('snapshotPriority');
+    sPriority.textContent = c.priority;
+    sPriority.className = 'chip';
+    if (c.priority === 'Critical') sPriority.classList.add('chip-critical');
+    else if (c.priority === 'High') sPriority.classList.add('chip-high');
+    else if (c.priority === 'Medium') sPriority.classList.add('chip-medium');
+    else sPriority.classList.add('chip-low');
+
+    const formattedDate = CS_DATA.fmtDate(c.filedOn);
+    document.getElementById('snapshotFiled').textContent = formattedDate.split(' · ')[0] + ', ' + formattedDate.split(' · ')[1].split(' ')[0];
+    document.getElementById('snapshotOfficer').textContent = c.officer;
+
+    // Handle submit button
+    const submitBtn = document.getElementById('submitRequestBtn');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => {
+        CS_DATA.verifyComplaint(c.id);
+        const frId = "FR-" + Math.floor(55000 + Math.random() * 900);
+        CS_DATA.addFreezeRequest({
+          id: frId,
+          caseId: c.id,
+          account: c.beneficiaryAccount.replace("XXXX-XXXX-", "XXXX-"),
+          bank: c.destBank,
+          sourceBank: c.sourceBank,
+          amount: c.amount,
+          status: "Pending",
+          requestedOn: new Date().toISOString(),
+          sla: "24.5h left"
+        });
+        CS_toast('Freeze request sent', `${frId} sent to ${c.destBank} · SLA 24h`);
+        setTimeout(() => {
+          window.location.href = 'sent-requests.html';
+        }, 1200);
+      });
+    }
+  }
+</script>
+</body>
+</html>

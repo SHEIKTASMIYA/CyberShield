@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Health — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.svc-row{ display:flex; align-items:center; gap:14px; padding:16px 20px; border-bottom:1px solid var(--border); }
+.svc-row:last-child{ border-bottom:none; }
+.svc-dot{ width:10px; height:10px; border-radius:50%; background:var(--success); flex:0 0 auto; }
+.svc-dot.warn{ background:var(--warning); }
+.svc-dot.down{ background:var(--danger); }
+</style>
+</head>
+<body data-page="system-health">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>System Health</h2><p>Live status of CyberShield's core services and integrations.</p></div></div>
+
+      <div class="card card-pad" style="margin-bottom:var(--sp-6); background:var(--success-soft); border:none;">
+        <div class="flex items-center gap-3"><span class="svc-dot" style="width:14px;height:14px;"></span><strong style="color:var(--success);">All core systems operational</strong></div>
+      </div>
+
+      <div class="card">
+        <div class="svc-row"><span class="svc-dot"></span><div style="flex:1;"><strong style="font-size:13.5px;">API Gateway</strong><div class="text-xs text-muted">99.99% uptime · 30 days</div></div><span class="text-sm mono">42ms</span></div>
+        <div class="svc-row"><span class="svc-dot"></span><div style="flex:1;"><strong style="font-size:13.5px;">Bank Integration Layer</strong><div class="text-xs text-muted" id="bankUptimeLabel">99.97% uptime · 212 institutions connected</div></div><span class="text-sm mono">118ms</span></div>
+        <div class="svc-row"><span class="svc-dot warn"></span><div style="flex:1;"><strong style="font-size:13.5px;">Telecom Integration Layer</strong><div class="text-xs text-muted">Degraded — Vi (Vodafone Idea) reporting delays</div></div><span class="text-sm mono">890ms</span></div>
+        <div class="svc-row"><span class="svc-dot"></span><div style="flex:1;"><strong style="font-size:13.5px;">Notification Service</strong><div class="text-xs text-muted">SMS, email, push — all channels operational</div></div><span class="text-sm mono">61ms</span></div>
+        <div class="svc-row"><span class="svc-dot"></span><div style="flex:1;"><strong style="font-size:13.5px;">Evidence Storage</strong><div class="text-xs text-muted">Encrypted object storage · 99.99% uptime</div></div><span class="text-sm mono">204ms</span></div>
+        <div class="svc-row"><span class="svc-dot"></span><div style="flex:1;"><strong style="font-size:13.5px;">Audit Log Pipeline</strong><div class="text-xs text-muted">Write-once ledger · fully synced</div></div><span class="text-sm mono">33ms</span></div>
+      </div>
+
+      <div class="card" style="margin-top:var(--sp-6);">
+        <div class="card-header"><h4>Incident History</h4></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Service</th><th>Description</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="text-sm text-secondary">18 Jul 2026</td><td class="text-sm">Telecom Integration Layer</td><td class="text-sm">Vi reporting API intermittent timeouts</td><td class="text-sm">Ongoing</td><td><span class="chip chip-progress">Monitoring</span></td></tr>
+              <tr><td class="text-sm text-secondary">02 Jul 2026</td><td class="text-sm">Notification Service</td><td class="text-sm">SMS delivery delayed for ~20 minutes</td><td class="text-sm">22 min</td><td><span class="chip chip-resolved">Resolved</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','system-health',{pageTitle:'System Health'});
+  const instCount = CS_DATA.institutions.length;
+  document.getElementById('bankUptimeLabel').textContent = `99.97% uptime · ${instCount} institutions connected`;
+</script>
+</body>
+</html>

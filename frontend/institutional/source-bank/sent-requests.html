@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sent Requests — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="sent-requests">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Sent Freeze Requests</h2><p>All freeze requests raised by HDFC Bank to destination banks.</p></div></div>
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search by case ID or account…"></div>
+        <select id="statusSelect" class="select input" style="width:auto;"><option>All Statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select>
+        <select id="bankSelect" class="select input" style="width:auto;"><option>All Banks</option><option>Yes Bank</option><option>Kotak Mahindra</option><option>Axis Bank</option><option>ICICI Bank</option></select>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="CS_toast('Export complete', 'Sent requests exported to CSV successfully')">Export CSV</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Destination Bank</th><th>Account</th><th>Amount</th><th>Requested</th><th>SLA</th><th>Status</th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','sent-requests',{pageTitle:'Sent Requests'});
+
+  const user = CS_DATA.currentUser.sourceBank;
+  const orgName = user && user.org ? user.org : "HDFC Bank";
+  document.querySelector('.page-head p').textContent = `All freeze requests raised by ${orgName} to destination banks.`;
+
+  const searchInput = document.getElementById('searchInput');
+  const statusSelect = document.getElementById('statusSelect');
+  const bankSelect = document.getElementById('bankSelect');
+
+  function renderRequests() {
+    const query = searchInput.value.toLowerCase().trim();
+    const status = statusSelect.value;
+    const bank = bankSelect.value;
+
+    const filtered = CS_DATA.freezeRequests.filter(f => f.sourceBank === orgName).filter(f => {
+      const matchesSearch = f.caseId.toLowerCase().includes(query) || f.account.toLowerCase().includes(query) || f.id.toLowerCase().includes(query);
+      const matchesStatus = status === "All Statuses" || f.status === status;
+      const matchesBank = bank === "All Banks" || f.bank === bank;
+      return matchesSearch && matchesStatus && matchesBank;
+    });
+
+    const body = document.getElementById('body');
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = filtered.map(f => `
+      <tr>
+        <td class="mono text-sm">${f.id}</td>
+        <td class="mono text-sm">${f.caseId}</td>
+        <td class="text-sm">${f.bank}</td>
+        <td class="mono text-sm">${f.account}</td>
+        <td class="mono">${CS_DATA.fmtINR(f.amount)}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(f.requestedOn).split(' · ')[0]}</td>
+        <td class="text-sm">${f.sla}</td>
+        <td>${CS_chip(f.status)}</td>
+      </tr>
+    `).join('');
+  }
+
+  if (searchInput && statusSelect && bankSelect) {
+    searchInput.addEventListener('input', renderRequests);
+    statusSelect.addEventListener('change', renderRequests);
+    bankSelect.addEventListener('change', renderRequests);
+  }
+
+  renderRequests();
+</script>
+</body>
+</html>

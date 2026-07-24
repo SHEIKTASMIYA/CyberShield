@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload History — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-page="upload-history">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Upload History</h2><p>Every file you've submitted as evidence, across all cases.</p></div></div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>File</th><th>Case</th><th>Type</th><th>Size</th><th>Uploaded</th><th></th></tr></thead>
+            <tbody id="upBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  CS_renderShell('citizen','upload-history',{pageTitle:'Upload History'});
+  const myName = CS_DATA.currentUser.citizen.name;
+  const myEvidence = CS_DATA.evidence.filter(e => e.by === myName);
+  
+  const upBody = document.getElementById('upBody');
+  if (myEvidence.length === 0) {
+    upBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    upBody.innerHTML = myEvidence.map(e=>`
+      <tr>
+        <td>${e.type==='pdf'?'📄':e.type==='image'||e.type==='png'||e.type==='jpg'?'🖼️':e.type==='audio'||e.type==='mp3'?'🎧':e.type==='video'||e.type==='mp4'?'🎬':'📊'} ${e.name}</td>
+        <td class="mono text-sm">${e.caseId || 'N/A'}</td>
+        <td class="text-sm">${e.type.toUpperCase()}</td>
+        <td class="text-sm">${e.size}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(e.uploadedOn)}</td>
+        <td><button class="btn btn-sm btn-ghost" onclick="CS_toast('Download started','Downloading ${e.name}')">Download</button></td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>

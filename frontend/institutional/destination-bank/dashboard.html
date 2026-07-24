@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Destination Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="dashboard">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Yes Bank Operations</h2><p>Freeze request review &amp; beneficiary account actions.</p></div></div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Pending Freeze Requests</span><span class="stat-value" data-dynamic-stat="dest-pending-freeze">0</span><span class="stat-delta down">0 overdue</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Approved This Week</span><span class="stat-value">0</span><span class="stat-delta up">Active compliance</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Frozen Accounts</span><span class="stat-value">0</span><span class="stat-delta up">₹0 on hold</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">SLA Compliance</span><span class="stat-value">98%</span><span class="stat-delta up">On track</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4>Pending Freeze Requests</h4><a href="pending-freeze-requests.html" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View all →</a></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Source Bank</th><th>Destination Bank</th><th>Account</th><th>Amount</th><th>SLA</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('destBank','dashboard',{pageTitle:'Dashboard'});
+  const user = CS_DATA.currentUser.destBank;
+  const orgName = user && user.org ? user.org : "Yes Bank";
+  document.querySelector('.page-head h2').textContent = `${orgName} Operations`;
+
+  const pendingRequests = CS_DATA.freezeRequests.filter(f => (f.bank === orgName || f.destBank === orgName) && f.status === "Pending");
+  const approvedRequests = CS_DATA.freezeRequests.filter(f => (f.bank === orgName || f.destBank === orgName) && f.status === "Approved");
+  const approvedSum = approvedRequests.reduce((sum, f) => sum + f.amount, 0);
+
+  document.querySelector('[data-dynamic-stat="dest-pending-freeze"]').textContent = pendingRequests.length;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = approvedRequests.length;
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = approvedRequests.length;
+
+  const frozenDelta = document.querySelectorAll('.stat-card .stat-delta')[2];
+  if (frozenDelta) {
+    frozenDelta.textContent = `${CS_DATA.fmtINR(approvedSum)} on hold`;
+    frozenDelta.className = "stat-delta up";
+  }
+
+  const pendingDelta = document.querySelectorAll('.stat-card .stat-delta')[0];
+  if (pendingDelta) {
+    pendingDelta.style.display = pendingRequests.length > 0 ? 'inline-block' : 'none';
+  }
+
+  const body = document.getElementById('body');
+  if (pendingRequests.length === 0) {
+    body.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No pending freeze requests targeting ${orgName}.</td></tr>`;
+  } else {
+    body.innerHTML = pendingRequests.map(f=>`
+      <tr class="row-link" onclick="window.location.href='freeze-approval.html?requestId=${f.id}'">
+        <td class="mono text-sm">${f.id}</td>
+        <td class="mono text-sm">${f.caseId}</td>
+        <td class="text-sm">${f.sourceBank}</td>
+        <td class="text-sm"><strong>${f.bank || f.destBank || orgName}</strong></td>
+        <td class="mono text-sm">${f.account}</td>
+        <td class="mono">${CS_DATA.fmtINR(f.amount)}</td>
+        <td class="text-sm">${f.sla}</td>
+        <td class="text-secondary">›</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>

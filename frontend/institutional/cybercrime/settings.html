@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Crime Dept Settings | CyberShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="settings">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head">
+        <div>
+          <h2>Cyber Crime Department Settings</h2>
+          <p>Officer auto-assignment thresholds, investigation priority rules, and evidence retention policies.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="CS_toast('Settings Saved','Configuration successfully saved.')">Save Settings</button>
+        </div>
+      </div>
+
+      <div class="flex-col gap-6">
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+            </span>
+            <h4>Automated Workload & Routing</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>Max Workload per Investigating Officer</label>
+              <input type="number" class="input" value="15">
+              <span class="hint">Maximum active critical/high priority cases per inspector.</span>
+            </div>
+            <div class="field">
+              <label>Anomaly Score Critical Threshold</label>
+              <input type="number" class="input" value="85">
+              <span class="hint">Cases with anomaly score above this threshold trigger automatic supervisor alerts.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </span>
+            <h4>Evidence & Judicial Export Retention</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>Court-Admissible Archive Retention (Years)</label>
+              <input type="number" class="input" value="7">
+            </div>
+            <div class="field">
+              <label>SHA-256 Hashing Verification Mode</label>
+              <select class="select">
+                <option selected>Strict Cryptographic Hashing</option>
+                <option>Standard Checksum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    CS_renderShell("cybercrime", "settings", {pageTitle: "Settings"});
+  });
+</script>
+</body>
+</html>

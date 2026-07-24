@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="user-management">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>User Management</h2><p>Manage accounts and roles across every connected institution.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" data-modal-open="addUserModal">+ Add User</button></div></div>
+
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search by name or org…"></div>
+        <select id="roleSelect" class="select input" style="width:auto;"><option>All Roles</option><option>Citizen</option><option>Source Bank</option><option>Destination Bank</option><option>Telecom</option><option>Cyber Crime Officer</option><option>Platform Admin</option></select>
+        <select id="statusSelect" class="select input" style="width:auto;"><option>All Statuses</option><option>Active</option><option>Suspended</option><option>Pending</option></select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Role</th><th>Organization</th><th>Status</th><th>Last Active</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-head"><h4>Add User</h4><button class="btn btn-ghost btn-icon" data-modal-close>✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Full name</label><input class="input" id="newUserName" placeholder="e.g. Ananya Sharma"></div>
+      <div class="field"><label>Email</label><input class="input" type="email" id="newUserEmail" placeholder="name@institution.gov.in"></div>
+      <div class="field"><label>Role</label><select class="select input" id="newUserRole"><option>Source Bank</option><option>Destination Bank</option><option>Telecom</option><option>Cyber Crime Officer</option><option>Platform Admin</option></select></div>
+      <div class="field"><label>Organization</label><input class="input" id="newUserOrg" placeholder="e.g. HDFC Bank"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-modal-close>Cancel</button><button class="btn btn-primary" onclick="inviteUser()">Send Invite</button></div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','user-management',{pageTitle:'User Management'});
+
+  const searchInput = document.getElementById('searchInput');
+  const roleSelect = document.getElementById('roleSelect');
+  const statusSelect = document.getElementById('statusSelect');
+
+  function renderUsers() {
+    const query = searchInput.value.toLowerCase().trim();
+    const role = roleSelect.value;
+    const status = statusSelect.value;
+
+    const filteredPending = (CS_DATA.userApprovals || []).filter(u => {
+      const matchesSearch = u.name.toLowerCase().includes(query) || u.org.toLowerCase().includes(query);
+      const matchesRole = role === "All Roles" || u.role === role;
+      const matchesStatus = status === "All Statuses" || u.status === status;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    const filteredUsers = (CS_DATA.users || []).filter(u => {
+      const matchesSearch = u.name.toLowerCase().includes(query) || u.org.toLowerCase().includes(query);
+      const matchesRole = role === "All Roles" || u.role === role;
+      const matchesStatus = status === "All Statuses" || u.status === status;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    const pendingHtml = filteredPending.map(u => `
+      <tr>
+        <td class="flex items-center gap-2">
+          <span class="avatar avatar-sm" style="background:var(--warning-soft);color:var(--amber-600);">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</span>
+          ${u.name}
+        </td>
+        <td class="text-sm">${u.role}</td>
+        <td class="text-sm">${u.org}</td>
+        <td><span class="chip chip-progress">${u.status}</span></td>
+        <td class="text-sm text-secondary">New Request</td>
+        <td style="display:flex; gap:8px;">
+          ${u.status === 'Pending' ? `
+            <button class="btn btn-sm btn-primary" onclick="CS_DATA.approveUserRequest('${u.id}'); window.location.reload();">Approve</button>
+            <button class="btn btn-sm btn-danger" onclick="CS_DATA.rejectUserRequest('${u.id}'); window.location.reload();">Reject</button>
+          ` : `Processed`}
+        </td>
+      </tr>
+    `).join('');
+
+    const usersHtml = filteredUsers.map(u => `
+      <tr>
+        <td class="flex items-center gap-2">
+          <span class="avatar avatar-sm">${u.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</span>
+          ${u.name}
+        </td>
+        <td class="text-sm">${u.role}</td>
+        <td class="text-sm">${u.org}</td>
+        <td>${CS_chip(u.status)}</td>
+        <td class="text-sm text-secondary">${u.lastActive}</td>
+        <td><button class="btn btn-sm btn-ghost">Edit</button></td>
+      </tr>
+    `).join('');
+
+    const body = document.getElementById('body');
+    if (filteredPending.length === 0 && filteredUsers.length === 0) {
+      body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = pendingHtml + usersHtml;
+  }
+
+  function inviteUser() {
+    const name = document.getElementById('newUserName').value.trim();
+    const email = document.getElementById('newUserEmail').value.trim();
+    const role = document.getElementById('newUserRole').value;
+    const org = document.getElementById('newUserOrg').value.trim();
+
+    if (!name || !email || !org) {
+      CS_toast('Error', 'Please fill in all fields', 'error');
+      return;
+    }
+
+    CS_DATA.users.unshift({
+      id: 'USR-' + Math.floor(1000 + Math.random() * 9000),
+      name: name,
+      email: email,
+      role: role,
+      org: org,
+      status: 'Active',
+      lastActive: 'Just invited'
+    });
+    CS_DATA.save();
+
+    CS_closeModal('addUserModal');
+    CS_toast('User invited', 'Invitation email sent and user added');
+    renderUsers();
+    
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserEmail').value = '';
+    document.getElementById('newUserOrg').value = '';
+  }
+
+  if (searchInput && roleSelect && statusSelect) {
+    searchInput.addEventListener('input', renderUsers);
+    roleSelect.addEventListener('change', renderUsers);
+    statusSelect.addEventListener('change', renderUsers);
+  }
+
+  renderUsers();
+</script>
+</body>
+</html>

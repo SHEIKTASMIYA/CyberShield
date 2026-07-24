@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rejected Requests — Destination Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="reject-request">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Rejected Requests</h2><p id="pageSub">Freeze requests declined by bank, with reasons on file.</p></div></div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Source Bank</th><th>Amount</th><th>Reason</th><th>Date</th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('destBank','reject-request',{pageTitle:'Reject Request'});
+  const user = CS_DATA.currentUser.destBank;
+  const orgName = user && user.org ? user.org : "Yes Bank";
+  document.getElementById('pageSub').textContent = `Freeze requests declined by ${orgName}, with reasons on file.`;
+
+  const rejected = CS_DATA.freezeRequests.filter(f => (f.bank === orgName || f.destBank === orgName) && f.status === 'Rejected');
+
+  const body = document.getElementById('body');
+  if (rejected.length === 0) {
+    body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No rejected requests for ${orgName}.</td></tr>`;
+  } else {
+    body.innerHTML = rejected.map(f=>`
+      <tr>
+        <td class="mono text-sm">${f.id}</td>
+        <td class="mono text-sm">${f.caseId}</td>
+        <td class="text-sm">${f.sourceBank}</td>
+        <td class="mono">${CS_DATA.fmtINR(f.amount)}</td>
+        <td class="text-sm">${f.reason||'—'}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(f.requestedOn).split(' · ')[0]}</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>

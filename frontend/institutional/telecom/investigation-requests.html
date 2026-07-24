@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigation Requests — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="investigation-requests">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Investigation Requests</h2><p>All SIM/IMEI requests raised by the Cyber Crime Department.</p></div></div>
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search by case ID or number…"></div>
+        <select id="statusSelect" class="select input" style="width:auto;"><option>All Statuses</option><option>Pending</option><option>In Progress</option><option>Completed</option></select>
+        <select id="operatorSelect" class="select input" style="width:auto;"><option>All Operators</option><option>Airtel</option><option>Jio</option><option>Vi (Vodafone Idea)</option></select>
+      </div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Number</th><th>Operator</th><th>Requested</th><th>Status</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('telecom','investigation-requests',{pageTitle:'Investigation Requests'});
+
+  const user = CS_DATA.currentUser.telecom;
+  const orgName = user && user.org ? user.org : "Airtel";
+
+  const searchInput = document.getElementById('searchInput');
+  const statusSelect = document.getElementById('statusSelect');
+  const operatorSelect = document.getElementById('operatorSelect');
+  if (operatorSelect) {
+    operatorSelect.style.display = 'none';
+  }
+
+  function renderRequests() {
+    const query = searchInput.value.toLowerCase().trim();
+    const status = statusSelect.value;
+
+    const filtered = CS_DATA.simRequests.filter(s => s.telecom === orgName).filter(s => {
+      const matchesSearch = s.caseId.toLowerCase().includes(query) || s.number.toLowerCase().includes(query) || s.id.toLowerCase().includes(query);
+      const matchesStatus = status === "All Statuses" || s.status === status;
+      return matchesSearch && matchesStatus;
+    });
+
+    const body = document.getElementById('body');
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="7" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = filtered.map(s => `
+      <tr class="row-link" onclick="window.location.href='sim-verification.html?requestId=${s.id}'">
+        <td class="mono text-sm">${s.id}</td>
+        <td class="mono text-sm">${s.caseId}</td>
+        <td class="mono text-sm">${s.number}</td>
+        <td class="text-sm">${s.operator}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(s.requestedOn).split(' · ')[0]}</td>
+        <td>${CS_chip(s.status)}</td>
+        <td class="text-secondary">›</td>
+      </tr>
+    `).join('');
+  }
+
+  if (searchInput && statusSelect) {
+    searchInput.addEventListener('input', renderRequests);
+    statusSelect.addEventListener('change', renderRequests);
+  }
+
+  renderRequests();
+</script>
+</body>
+</html>

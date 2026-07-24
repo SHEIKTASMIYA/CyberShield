@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/public.css">
+</head>
+<body>
+<nav class="marketing-nav"><div class="container">
+  <a href="index.html" class="flex items-center gap-2"><span class="brand-mark" style="width:34px;height:34px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg></span><span style="font-weight:800; font-size:17px;">CyberShield</span></a>
+  <div class="mnav-links"><a href="features.html">Features</a><a href="how-it-works.html">How it Works</a><a href="security.html">Security</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
+  <div class="flex items-center gap-3"><button class="btn btn-primary btn-sm" data-modal-open="authSelectModal">Login</button></div>
+</div></nav>
+
+<header class="page-hero"><div class="container">
+  <div class="eyebrow">Contact</div>
+  <h1>Get in touch</h1>
+  <p>For active fraud, call 1930 immediately. For everything else, reach the CyberShield team below.</p>
+</div></header>
+
+<section class="prose-section"><div class="container" style="max-width:1080px;">
+  <div class="grid" style="grid-template-columns:1fr 1fr; gap:32px;">
+    <div class="card card-pad">
+      <h4 style="margin-bottom:16px;">Send a message</h4>
+      <form onsubmit="event.preventDefault(); CS_toast('Message sent','Our team will respond within 1 business day');">
+        <div class="field"><label>Full name</label><input class="input" required></div>
+        <div class="field"><label>Email</label><input class="input" type="email" required></div>
+        <div class="field"><label>Institution (if applicable)</label><input class="input"></div>
+        <div class="field"><label>Message</label><textarea class="input" rows="4" required></textarea></div>
+        <button class="btn btn-primary btn-block" type="submit">Send Message</button>
+      </form>
+    </div>
+    <div class="flex-col gap-4">
+      <div class="card card-pad"><h5 style="margin-bottom:6px;">National Cyber Crime Helpline</h5><p class="text-sm text-secondary">Call <strong>1930</strong>, available 24×7, toll-free.</p></div>
+      <div class="card card-pad"><h5 style="margin-bottom:6px;">Institutional onboarding</h5><p class="text-sm text-secondary">Banks and telecom operators: onboarding@cybershield.gov.in</p></div>
+      <div class="card card-pad"><h5 style="margin-bottom:6px;">Media & press</h5><p class="text-sm text-secondary">press@cybershield.gov.in</p></div>
+      <div class="card card-pad"><h5 style="margin-bottom:6px;">Headquarters</h5><p class="text-sm text-secondary">CyberShield Program Office, Ministry of Home Affairs, New Delhi</p></div>
+    </div>
+  </div>
+</div></section>
+
+<footer class="site-footer"><div class="container">
+  <div class="footer-grid">
+    <div><div class="flex items-center gap-2" style="margin-bottom:16px;"><span class="brand-mark" style="width:28px;height:28px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg></span><span style="font-weight:800; color:#fff;">CyberShield</span></div><p style="font-size:13px; max-width:32ch;">A coordination platform for the Cyber Crime Department, connecting banks and telecom operators to victims.</p></div>
+    <div><h6>Product</h6><a href="features.html">Features</a><a href="how-it-works.html">How it Works</a><a href="security.html">Security</a></div>
+    <div><h6>Company</h6><a href="about.html">About</a><a href="careers.html">Careers</a><a href="contact.html">Contact</a></div>
+    <div><h6>Resources</h6><a href="faqs.html">FAQs</a><a href="../citizen/support.html">Support</a></div>
+    <div><h6>Legal</h6><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 CyberShield · A Government Cyber Crime Department Initiative</span><span>Status: All Systems Operational</span></div>
+</div></footer>
+<div class="overlay" id="authSelectModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+  <div class="modal auth-select-modal">
+    <button class="modal-close-btn" data-modal-close aria-label="Close dialog">✕</button>
+    <div class="auth-modal-head">
+      <div class="brand-mark-sm"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      <h3 id="authModalTitle">Welcome to CyberShield</h3>
+      <p class="sub">Choose how you would like to continue.</p>
+    </div>
+    <div class="auth-modal-body">
+      <div class="auth-option-grid">
+        <div class="auth-option-card">
+          <div class="auth-option-badge">New User</div>
+          <div class="auth-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg></div>
+          <h4>New User</h4>
+          <p>Register as a new authorized user.</p>
+          <a href="../auth/signup.html" class="btn btn-primary btn-block btn-lg">Create Account</a>
+        </div>
+        <div class="auth-option-card">
+          <div class="auth-option-badge badge-secondary">Existing User</div>
+          <div class="auth-option-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+          <h4>Existing User</h4>
+          <p>Access your existing CyberShield account.</p>
+          <a href="../auth/login.html" class="btn btn-secondary btn-block btn-lg">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/app.js"></script>
+</body>
+</html>

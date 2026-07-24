@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institution Management — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="institution-management">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Institution Management</h2><p>Banks, telecom operators, and government bodies connected to CyberShield.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" data-modal-open="addInstModal">+ Add Institution</button></div></div>
+
+      <div class="grid grid-3" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Source Banks</span><span class="stat-value">86</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Destination Banks</span><span class="stat-value">92</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Telecom Operators</span><span class="stat-value">4</span></div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Institution</th><th>Type</th><th>Cases Linked</th><th>SLA Compliance</th><th>Status</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="addInstModal">
+  <div class="modal">
+    <div class="modal-head"><h4>Add Institution</h4><button class="btn btn-ghost btn-icon" data-modal-close>✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Institution name</label><input class="input" id="newInstName" placeholder="e.g. IDFC FIRST Bank"></div>
+      <div class="field"><label>Type</label><select class="select input" id="newInstType"><option>Source Bank</option><option>Destination Bank</option><option>Telecom Operator</option></select></div>
+      <div class="field"><label>Nodal officer email</label><input class="input" type="email" id="newInstEmail" placeholder="nodal@institution.com"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-modal-close>Cancel</button><button class="btn btn-primary" onclick="addInstitution()">Add Institution</button></div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','institution-management',{pageTitle:'Institution Management'});
+
+  function renderInstitutions() {
+    const pending = (CS_DATA.institutionRequests||[]).filter(i=>i.status==='Pending' || i.status==='Under Review');
+    const pendingHtml = pending.map(i=>`
+      <tr>
+        <td>${i.name}</td>
+        <td class="text-sm">${i.type}</td>
+        <td class="text-sm">—</td>
+        <td class="text-sm">—</td>
+        <td><span class="chip chip-progress">${i.status}</span></td>
+        <td><button class="btn btn-sm btn-primary" onclick="CS_DATA.approveInstitutionRequest('${i.id}'); renderInstitutions();">Approve</button></td>
+      </tr>
+    `).join('');
+    
+    const activeHtml = CS_DATA.institutions.map(i=>`
+      <tr>
+        <td>${i.name}</td>
+        <td class="text-sm">${i.type}</td>
+        <td class="text-sm">${i.cases}</td>
+        <td class="text-sm">${i.slaCompliance}%</td>
+        <td>${CS_chip(i.status)}</td>
+        <td><button class="btn btn-sm btn-ghost">Manage</button></td>
+      </tr>`).join('');
+      
+    const body = document.getElementById('body');
+    if (pending.length === 0 && CS_DATA.institutions.length === 0) {
+      body.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+    } else {
+      body.innerHTML = pendingHtml + activeHtml;
+    }
+    
+    const sBanks = CS_DATA.institutions.filter(i => i.type === 'Source Bank').length;
+    const dBanks = CS_DATA.institutions.filter(i => i.type === 'Destination Bank').length;
+    const telecoms = CS_DATA.institutions.filter(i => i.type.includes('Telecom')).length;
+    
+    document.querySelectorAll('.stat-card .stat-value')[0].textContent = sBanks;
+    document.querySelectorAll('.stat-card .stat-value')[1].textContent = dBanks;
+    document.querySelectorAll('.stat-card .stat-value')[2].textContent = telecoms;
+  }
+
+  function addInstitution() {
+    const name = document.getElementById('newInstName').value.trim();
+    const typeSelect = document.getElementById('newInstType').value;
+    const email = document.getElementById('newInstEmail').value.trim();
+    
+    if (!name || !email) {
+      CS_toast('Error', 'Please fill in all fields', 'error');
+      return;
+    }
+    
+    const type = typeSelect === 'Telecom Operator' ? 'Telecom' : typeSelect;
+    
+    CS_DATA.institutions.unshift({
+      id: 'INST-' + Math.floor(1000 + Math.random() * 9000),
+      name: name,
+      type: type,
+      cases: 0,
+      slaCompliance: 100,
+      status: 'Active'
+    });
+    CS_DATA.save();
+    
+    CS_closeModal('addInstModal');
+    CS_toast('Institution added', 'Onboarding email sent and institution added');
+    renderInstitutions();
+    
+    document.getElementById('newInstName').value = '';
+    document.getElementById('newInstEmail').value = '';
+  }
+
+  renderInstitutions();
+</script>
+</body>
+</html>

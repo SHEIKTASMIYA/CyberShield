@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="roles">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Roles</h2><p>System roles and how many accounts hold each one.</p></div>
+        <div class="page-actions"><button class="btn btn-primary">+ Create Role</button></div></div>
+
+      <div class="grid grid-3" id="rolesGrid"></div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','roles',{pageTitle:'Roles'});
+
+  const roles = [
+    { name: 'Citizen', desc: 'Report fraud, track cases, upload evidence.', match: ['Citizen', 'Citizen Victim'] },
+    { name: 'Source Bank', desc: 'Verify complaints, raise freeze requests.', match: ['Source Bank', 'Source Bank Analyst'] },
+    { name: 'Destination Bank', desc: 'Review and action freeze requests.', match: ['Destination Bank', 'Destination Bank Officer'] },
+    { name: 'Telecom Operator', desc: 'SIM/IMEI verification requests.', match: ['Telecom', 'Telecom Operator'] },
+    { name: 'Cyber Crime Officer', desc: 'Investigate, assign, and close cases.', match: ['Cyber Crime Officer', 'Cyber Crime Inspector', 'Inspector'] },
+    { name: 'Platform Admin', desc: 'Full platform configuration access.', match: ['Platform Admin', 'Administrator'] }
+  ];
+
+  document.getElementById('rolesGrid').innerHTML = roles.map(r => {
+    const count = CS_DATA.users.filter(u => r.match.includes(u.role)).length;
+    return `
+      <div class="card card-pad">
+        <div class="flex justify-between items-center" style="margin-bottom:8px;">
+          <strong>${r.name}</strong>
+          <span class="chip chip-neutral">${count} user${count === 1 ? '' : 's'}</span>
+        </div>
+        <p class="text-sm text-secondary">${r.desc}</p>
+      </div>
+    `;
+  }).join('');
+</script>
+</body>
+</html>

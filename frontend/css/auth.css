@@ -1,0 +1,29 @@
+.auth-shell{ min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
+.auth-side{
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(18,167,154,.18), transparent 60%),
+    linear-gradient(180deg, var(--ink-950), var(--ink-900));
+  color:#fff; padding:56px; display:flex; flex-direction:column; justify-content:space-between;
+}
+.auth-side .quote{ font-size:22px; line-height:1.5; letter-spacing:-.01em; max-width:34ch; }
+.auth-side .quote-attr{ margin-top:18px; font-size:13px; color:var(--ink-300); }
+.auth-form-col{ display:flex; align-items:center; justify-content:center; padding:40px; }
+.auth-box{ width:100%; max-width:392px; }
+.auth-box h2{ margin-bottom:8px; }
+.auth-box .sub{ color:var(--text-secondary); margin-bottom:32px; font-size:var(--fs-sm); }
+.auth-divider{ display:flex; align-items:center; gap:12px; color:var(--text-muted); font-size:12px; margin:20px 0; }
+.auth-divider::before,.auth-divider::after{ content:''; flex:1; height:1px; background:var(--border); }
+.role-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.role-tile{
+  border:1px solid var(--border-strong); border-radius:var(--r-lg); padding:18px; text-align:left;
+  display:flex; flex-direction:column; gap:10px; background:var(--surface); transition:all var(--dur-fast) var(--ease);
+}
+.role-tile:hover{ border-color:var(--accent); box-shadow:var(--shadow-sm); transform:translateY(-1px); }
+.role-tile .ri{ width:36px; height:36px; border-radius:10px; background:var(--accent-soft); color:var(--accent-strong); display:flex; align-items:center; justify-content:center; }
+.role-tile .ri svg{ width:18px; height:18px; }
+.role-tile strong{ font-size:var(--fs-sm); }
+.role-tile span{ font-size:var(--fs-2xs); color:var(--text-muted); }
+.otp-row{ display:flex; gap:10px; justify-content:center; margin:28px 0; }
+.otp-box{ width:48px; height:56px; text-align:center; font-size:22px; font-weight:700; border-radius:var(--r-md); border:1px solid var(--border-strong); font-family:var(--font-mono); }
+.otp-box:focus{ outline:none; border-color:var(--accent); box-shadow:var(--focus-ring); }
+@media (max-width:900px){ .auth-shell{ grid-template-columns:1fr; } .auth-side{ display:none; } }

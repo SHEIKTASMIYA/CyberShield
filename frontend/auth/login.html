@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/auth.css">
+<style>
+  .error-banner {
+    background: rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.35);
+    border-radius: var(--r-md); padding: 12px 16px; margin-bottom: 20px;
+    color: #fca5a5; font-size: .85rem; line-height: 1.5; display: none;
+  }
+  .error-banner.show { display: block; }
+  .error-banner a { color: #fb923c; font-weight: 600; }
+</style>
+</head>
+<body data-page="login">
+<div class="auth-shell">
+  <div class="auth-side">
+    <a href="../public/index.html" class="flex items-center gap-2">
+      <span class="brand-mark" style="width:32px;height:32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg></span>
+      <span style="font-weight:800;font-size:17px;">CyberShield</span>
+    </a>
+    <div>
+      <p class="quote">"The freeze request reached the destination bank in under four minutes. That speed is what saved the funds."</p>
+      <div class="quote-attr">— Cyber Crime Cell, Bengaluru East, case debrief</div>
+    </div>
+    <div class="flex gap-6 text-xs" style="color:var(--ink-400);">
+      <span>256-bit encryption</span><span>Govt. audited</span><span>212 institutions connected</span>
+    </div>
+  </div>
+
+  <div class="auth-form-col">
+    <div class="auth-box">
+      <h2>Welcome back</h2>
+      <p class="sub" id="loginSub">Log in to continue to your CyberShield dashboard.</p>
+
+      <div class="error-banner" id="errorBanner"></div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">Email or Registered Mobile</label>
+          <input class="input" id="email" type="text" placeholder="you@institution.gov.in" required>
+        </div>
+
+        <div class="field" id="bankField" style="display:none;">
+          <label for="bankSelect">Select Your Bank</label>
+          <select class="select input" id="bankSelect">
+            <option value="HDFC Bank">HDFC Bank</option>
+            <option value="ICICI Bank">ICICI Bank</option>
+            <option value="State Bank of India">State Bank of India</option>
+            <option value="Axis Bank">Axis Bank</option>
+            <option value="Kotak Mahindra">Kotak Mahindra</option>
+            <option value="Yes Bank">Yes Bank</option>
+            <option value="Punjab National Bank">Punjab National Bank</option>
+            <option value="Bank of Baroda">Bank of Baroda</option>
+            <option value="IndusInd Bank">IndusInd Bank</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="flex justify-between items-center">
+            <label for="pwd">Password</label>
+            <a href="forgot-password.html" class="text-xs" style="color:var(--accent-strong);font-weight:600;">Forgot password?</a>
+          </div>
+          <input class="input" id="pwd" type="password" placeholder="••••••••" required>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm" style="margin-bottom:24px;color:var(--text-secondary);">
+          <input type="checkbox" style="width:16px;height:16px;"> Keep me signed in on this device
+        </label>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submitBtn">Continue</button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <a href="signup.html" id="signUpLink" class="btn btn-secondary btn-block">New to CyberShield? Create Account</a>
+      <a href="role-select.html" class="btn btn-ghost btn-block" style="margin-top:8px;">Switch Role</a>
+
+      <p class="text-xs text-muted" style="text-align:center;margin-top:24px;">
+        By continuing you agree to CyberShield's <a href="../public/terms.html" style="color:var(--accent-strong);font-weight:600;">Terms</a> and <a href="../public/privacy.html" style="color:var(--accent-strong);font-weight:600;">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+  // ── URL params ─────────────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get('role') || 'citizen';
+  const urlBank = params.get('bank') || '';
+  const dest = params.get('to') || (role === 'citizen'
+    ? '../citizen/dashboard.html'
+    : `../institutional/${role}/dashboard.html`);
+
+  const roleLabels = {
+    'citizen': 'Citizen / Victim Portal',
+    'source-bank': 'Source Bank Portal',
+    'destination-bank': 'Destination Bank Portal',
+    'telecom': 'Telecom Operator Portal',
+    'cybercrime': 'Cyber Crime Dept Portal',
+    'admin': 'Administrator Portal'
+  };
+
+  if (roleLabels[role]) {
+    document.getElementById('loginSub').innerHTML = `Log in to continue to <strong>${roleLabels[role]}</strong>.`;
+  }
+
+  // Show Bank selection field if role is bank related
+  const bankField = document.getElementById('bankField');
+  const bankSelect = document.getElementById('bankSelect');
+  if (role === 'source-bank' || role === 'destination-bank') {
+    bankField.style.display = 'block';
+    if (urlBank && [...bankSelect.options].some(o => o.value === urlBank)) {
+      bankSelect.value = urlBank;
+    } else if (role === 'source-bank') {
+      bankSelect.value = 'HDFC Bank';
+    } else if (role === 'destination-bank') {
+      bankSelect.value = 'Yes Bank';
+    }
+  }
+
+  document.getElementById('signUpLink').href = `signup.html?role=${encodeURIComponent(role)}&to=${encodeURIComponent(dest)}`;
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  function showError(msg) {
+    const b = document.getElementById('errorBanner');
+    b.innerHTML = msg; b.classList.add('show');
+  }
+  function clearError() {
+    document.getElementById('errorBanner').classList.remove('show');
+  }
+  function setLoading(loading) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = loading;
+    btn.innerText = loading ? 'Authenticating…' : 'Continue';
+  }
+
+  function friendlyAuthError(err) {
+    const code = err.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      const signupUrl = `signup.html?role=${encodeURIComponent(role)}&to=${encodeURIComponent(dest)}`;
+      return `Incorrect email or password. <a href="${signupUrl}">Create an account →</a>`;
+    }
+    if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
+    if (code === 'auth/too-many-requests') return 'Too many failed attempts. Please wait a few minutes and try again.';
+    if (code === 'auth/network-request-failed') return 'Network error — please check your connection.';
+    if (code === 'auth/user-disabled') return 'This account has been disabled. Contact your administrator.';
+    return err.message || 'Login failed. Please try again.';
+  }
+
+  // ── Form submission ────────────────────────────────────────────────────────
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearError();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('pwd').value;
+    const selectedBank = (role === 'source-bank' || role === 'destination-bank') ? bankSelect.value : '';
+
+    if (!email || !password) { showError('Please enter both email and password.'); return; }
+
+    setLoading(true);
+
+    try {
+      await window.CS_FIREBASE.ready;
+
+      let userCredential;
+      try {
+        userCredential = await window.CS_FIREBASE.authService.login(email, password);
+      } catch (authErr) {
+        showError(friendlyAuthError(authErr));
+        setLoading(false);
+        return;
+      }
+
+      const user = userCredential.user;
+      const token = await user.getIdToken();
+
+      let profile = null;
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_token: token })
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          profile = resData.profile;
+        }
+      } catch (backendErr) {
+        console.warn('Backend login endpoint unreachable:', backendErr.message);
+      }
+
+      const initials = email.split('@')[0].substring(0, 2).toUpperCase();
+      if (!profile) {
+        profile = {
+          uid: user.uid,
+          name: email.split('@')[0],
+          email: email,
+          role: role,
+          org: selectedBank,
+          initials: initials,
+          status: 'Active'
+        };
+      } else if (selectedBank) {
+        profile.org = selectedBank;
+      }
+
+      // Map backend role to state key
+      let key = "citizen";
+      if (role === "source-bank") key = "sourceBank";
+      else if (role === "destination-bank") key = "destBank";
+      else if (role === "telecom") key = "telecom";
+      else if (role === "cybercrime") key = "cybercrime";
+      else if (role === "admin") key = "admin";
+
+      // Save user session in local storage state
+      const stateStr = localStorage.getItem('cs_state_v5') || sessionStorage.getItem('cs_state_v5');
+      let stateObj = stateStr ? JSON.parse(stateStr) : {};
+      if (!stateObj.currentUser) {
+        stateObj.currentUser = {
+          citizen: { name: "", initials: "", email: "", phone: "", role: "Citizen Victim" },
+          sourceBank: { name: "", initials: "", org: "HDFC Bank", role: "Fraud Ops Analyst", email: "" },
+          destBank: { name: "", initials: "", org: "Yes Bank", role: "Freeze Approval Officer", email: "" },
+          telecom: { name: "", initials: "", org: "Airtel", role: "Nodal Officer", email: "" },
+          cybercrime: { name: "", initials: "", org: "Bengaluru East Cyber Cell", role: "Inspector", email: "" },
+          admin: { name: "", initials: "", org: "CyberShield HQ", role: "Platform Administrator", email: "" }
+        };
+      }
+
+      stateObj.currentUser[key] = {
+        name: profile.name || email.split('@')[0],
+        initials: profile.initials || initials,
+        email: email,
+        org: selectedBank || profile.org || (role === 'source-bank' ? 'HDFC Bank' : role === 'destination-bank' ? 'Yes Bank' : ''),
+        role: profile.role || role
+      };
+
+      localStorage.setItem('cs_state_v5', JSON.stringify(stateObj));
+      sessionStorage.setItem('cs_state_v5', JSON.stringify(stateObj));
+
+      window.location.href = dest;
+
+    } catch (err) {
+      console.error('Login error:', err);
+      showError('Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  });
+</script>
+</body>
+</html>

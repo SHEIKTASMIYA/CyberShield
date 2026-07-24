@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked Cases — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="linked-cases">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Linked Cases</h2><p>Cases sharing accounts, UPI IDs, devices, or IPs — likely part of the same fraud ring.</p></div>
+        <div class="page-actions"><a href="fraud-network-graph.html" class="btn btn-primary">Open Network Graph</a></div></div>
+
+      <div id="sharedContainer"></div>
+
+      <div class="card" style="margin-top:var(--sp-6);" id="allLinksCard">
+        <div class="card-header"><h4>All Detected Links</h4></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Shared Entity</th><th>Type</th><th>Cases Involved</th><th>Confidence</th></tr></thead>
+            <tbody id="linksBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>  CS_renderShell('cybercrime','linked-cases',{pageTitle:'Linked Cases'});
+
+  const cases = CS_DATA.cases;
+  const accountCases = {};
+  const upiCases = {};
+
+  cases.forEach(c => {
+    if (c.beneficiaryAccount && c.beneficiaryAccount !== "N/A") {
+      if (!accountCases[c.beneficiaryAccount]) accountCases[c.beneficiaryAccount] = [];
+      accountCases[c.beneficiaryAccount].push(c);
+    }
+    if (c.beneficiaryUpi && c.beneficiaryUpi !== "N/A") {
+      if (!upiCases[c.beneficiaryUpi]) upiCases[c.beneficiaryUpi] = [];
+      upiCases[c.beneficiaryUpi].push(c);
+    }
+  });
+
+  const sharedEntities = [];
+  for (const acc in accountCases) {
+    if (accountCases[acc].length > 1) {
+      sharedEntities.push({
+        entity: acc,
+        type: 'Account',
+        cases: accountCases[acc]
+      });
+    }
+  }
+  for (const upi in upiCases) {
+    if (upiCases[upi].length > 1) {
+      sharedEntities.push({
+        entity: upi,
+        type: 'UPI ID',
+        cases: upiCases[upi]
+      });
+    }
+  }
+
+  const container = document.getElementById('sharedContainer');
+  const linksBody = document.getElementById('linksBody');
+  const allLinksCard = document.getElementById('allLinksCard');
+
+  if (sharedEntities.length === 0) {
+    container.innerHTML = `
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🔗</div>
+        <h4>No linked cases detected</h4>
+        <p class="text-sm text-secondary" style="margin-top:8px;">No shared beneficiary accounts or UPI IDs were found across active complaints.</p>
+      </div>
+    `;
+    allLinksCard.style.display = 'none';
+  } else {
+    allLinksCard.style.display = 'block';
+    
+    const se = sharedEntities[0];
+    container.innerHTML = `
+      <div class="card card-pad">
+        <div class="flex items-center gap-3" style="margin-bottom:16px;">
+          <span class="chip chip-critical">Shared entity: ${se.entity}</span>
+          <span class="text-sm text-secondary">Linked across ${se.cases.length} cases</span>
+        </div>
+        <div class="grid grid-2">
+          ${se.cases.map(c => `
+            <div class="card card-pad" style="background:var(--surface-sunken); border:none;">
+              <div class="flex justify-between items-center"><strong class="mono">${c.id}</strong>${CS_priorityChip(c.priority)}</div>
+              <p class="text-sm text-secondary" style="margin:8px 0;">${c.victim} · ${CS_DATA.fmtINR(c.amount)} · ${c.channel} Fraud</p>
+              <a href="investigation-timeline.html?caseId=${c.id}" class="text-sm" style="color:var(--accent-strong); font-weight:600;">View case →</a>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    linksBody.innerHTML = sharedEntities.map(s => {
+      const caseIdsStr = s.cases.map(c => c.id).join(', ');
+      return `
+        <tr>
+          <td class="mono text-sm">${s.entity}</td>
+          <td class="text-sm">${s.type}</td>
+          <td class="text-sm">${caseIdsStr}</td>
+          <td><span class="chip chip-critical">High</span></td>
+        </tr>
+      `;
+    }).join('');
+  }</script>
+</body>
+</html>

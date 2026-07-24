@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM Verification — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; } .kv:last-child{border-bottom:none;} .kv span:first-child{color:var(--text-muted);}</style>
+</head>
+<body data-page="sim-verification">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>SIM Verification</h2><p>Confirm SIM ownership and activity for numbers linked to fraud cases.</p></div></div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">Request TR-3391</h5>
+          <div class="kv"><span>Number</span><span class="mono">+91 98xxxx4471</span></div>
+          <div class="kv"><span>Case</span><span class="mono">CC-2026-08841</span></div>
+          <div class="kv"><span>Requested by</span><span>Insp. Priya Nair</span></div>
+          <div class="kv"><span>Requested on</span><span>14 Jul 2026, 13:00</span></div>
+          <div class="kv"><span>Priority</span><span class="chip chip-critical">Critical</span></div>
+          <hr class="divider">
+          <h5 style="margin-bottom:16px;">Verification Result</h5>
+          <div class="field"><label>SIM ownership status</label>
+            <select class="select input"><option>Active — matches registered KYC</option><option>Active — KYC mismatch</option><option>Inactive / disconnected</option><option>Reported stolen SIM</option></select>
+          </div>
+          <div class="field"><label>Notes for case file</label><textarea class="input" rows="3" placeholder="Registration details, activation date, any anomalies…"></textarea></div>
+          <button class="btn btn-primary btn-block" onclick="CS_DATA.completeSimVerification('TR-3391'); CS_toast('Verification submitted','TR-3391 marked complete and sent to case file'); setTimeout(()=>window.location.href='investigation-requests.html',1000);">Submit Verification</button>
+        </div>
+
+        <div class="card card-pad">
+          <h5 style="margin-bottom:16px;">SIM Activity Snapshot</h5>
+          <div class="kv"><span>Registered owner</span><span>Unverified — matches complaint suspect profile</span></div>
+          <div class="kv"><span>Activation date</span><span>3 Jul 2026 (11 days ago)</span></div>
+          <div class="kv"><span>Circle</span><span>Karnataka</span></div>
+          <div class="kv"><span>Linked device (IMEI)</span><span class="mono">•8213</span></div>
+          <div class="kv"><span>Prior flags</span><span class="chip chip-high">Linked to 2 cases</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>  CS_renderShell('telecom','sim-verification',{pageTitle:'SIM Verification'});
+
+  const params = new URLSearchParams(window.location.search);
+  const activeReqId = params.get('requestId');
+  const req = CS_DATA.simRequests.find(x => x.id === activeReqId) || CS_DATA.simRequests[0];
+
+  if (!req) {
+    document.querySelector('.content').innerHTML = `
+      <div class="page-head">
+        <div>
+          <h2>SIM Verification</h2>
+          <p>No active SIM request selected for verification.</p>
+        </div>
+      </div>
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">📶</div>
+        <h4>No SIM request found</h4>
+        <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+          There are no SIM verification requests matching this identifier.
+        </p>
+      </div>
+    `;
+  } else {
+    document.querySelector('.card h5').textContent = `Request ${req.id}`;
+    document.querySelectorAll('.kv span')[1].textContent = req.number;
+    document.querySelectorAll('.kv span')[3].textContent = req.caseId;
+    
+    const c = CS_DATA.cases.find(x => x.id === req.caseId);
+    document.querySelectorAll('.kv span')[5].textContent = c ? c.officer : "Insp. Priya Nair";
+    
+    const formattedDate = CS_DATA.fmtDate(req.requestedOn);
+    document.querySelectorAll('.kv span')[7].textContent = `${formattedDate.split(' · ')[0]}, ${formattedDate.split(' · ')[1]} IST`;
+
+    const priorityChip = document.querySelectorAll('.kv span')[9];
+    const priority = c ? c.priority : "Medium";
+    priorityChip.textContent = priority;
+    priorityChip.className = 'chip';
+    if (priority === 'Critical') priorityChip.classList.add('chip-critical');
+    else if (priority === 'High') priorityChip.classList.add('chip-high');
+    else if (priority === 'Medium') priorityChip.classList.add('chip-medium');
+    else priorityChip.classList.add('chip-low');
+
+    const submitBtn = document.querySelector('.card button');
+    if (submitBtn) {
+      if (req.status !== 'Pending') {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.textContent = 'Verification Completed';
+        submitBtn.onclick = null;
+      } else {
+        submitBtn.onclick = null;
+        submitBtn.addEventListener('click', () => {
+          CS_DATA.completeSimVerification(req.id);
+          CS_toast('Verification submitted', `${req.id} marked complete and sent to case file`);
+          setTimeout(() => {
+            window.location.href = 'investigation-requests.html';
+          }, 1200);
+        });
+      }
+    }
+
+    document.querySelectorAll('.card-pad')[1].querySelectorAll('.kv span')[1].textContent = req.owner || "Unverified";
+    document.querySelectorAll('.card-pad')[1].querySelectorAll('.kv span')[3].textContent = req.activationDate || "Recent";
+    document.querySelectorAll('.card-pad')[1].querySelectorAll('.kv span')[5].textContent = req.circle || "Karnataka";
+    document.querySelectorAll('.card-pad')[1].querySelectorAll('.kv span')[7].textContent = req.imei || "—";
+  }</script>
+</body>
+</html>

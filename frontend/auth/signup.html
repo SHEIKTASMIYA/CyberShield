@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign up — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/auth.css">
+<style>
+  .error-banner {
+    background: rgba(248,113,113,.12); border:1px solid rgba(248,113,113,.35);
+    border-radius: var(--r-md); padding: 12px 16px; margin-bottom: 20px;
+    color: #fca5a5; font-size: .85rem; line-height: 1.5; display: none;
+  }
+  .error-banner.show { display: block; }
+  .error-banner a { color: #fb923c; font-weight: 600; }
+  .success-banner {
+    background: rgba(52,211,153,.12); border:1px solid rgba(52,211,153,.35);
+    border-radius: var(--r-md); padding: 12px 16px; margin-bottom: 20px;
+    color: #6ee7b7; font-size: .85rem; display: none;
+  }
+  .success-banner.show { display: block; }
+</style>
+</head>
+<body data-page="signup">
+<div class="auth-shell">
+  <div class="auth-side">
+    <a href="../public/index.html" class="flex items-center gap-2">
+      <span class="brand-mark" style="width:32px;height:32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2 3 6v6c0 5 3.8 9.3 9 10 5.2-.7 9-5 9-10V6l-9-4Z"/></svg></span>
+      <span style="font-weight:800;font-size:17px;">CyberShield</span>
+    </a>
+    <div>
+      <p class="quote">"Connecting victims and financial institutions on one unified timeline saved millions in fraud recovery."</p>
+      <div class="quote-attr">— National Cyber Fraud Coordination Committee</div>
+    </div>
+    <div class="flex gap-6 text-xs" style="color:var(--ink-400);">
+      <span>256-bit encryption</span><span>Govt. audited</span><span>212 institutions connected</span>
+    </div>
+  </div>
+
+  <div class="auth-form-col">
+    <div class="auth-box">
+      <h2>Create your account</h2>
+      <p class="sub" id="signupSub">Register as a new authorized user or institution officer.</p>
+
+      <div class="error-banner" id="errorBanner"></div>
+      <div class="success-banner" id="successBanner"></div>
+
+      <form id="signupForm">
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input class="input" id="fullName" type="text" placeholder="Dr. Rajesh Sharma" required>
+        </div>
+        <div class="field">
+          <label for="email">Work Email or Mobile Number</label>
+          <input class="input" id="email" type="text" placeholder="you@institution.gov.in" required>
+        </div>
+        <div class="field">
+          <label for="role">Portal Account Role</label>
+          <select class="select input" id="role" required>
+            <option value="citizen">Citizen / Victim</option>
+            <option value="source-bank">Source Bank Officer</option>
+            <option value="destination-bank">Destination Bank Officer</option>
+            <option value="telecom">Telecom Nodal Officer</option>
+            <option value="cybercrime">Cyber Crime Inspector</option>
+            <option value="admin">Platform Administrator</option>
+          </select>
+        </div>
+
+        <div class="field" id="bankField" style="display:none;">
+          <label for="bankSelect">Select Your Bank</label>
+          <select class="select input" id="bankSelect">
+            <option value="HDFC Bank">HDFC Bank</option>
+            <option value="ICICI Bank">ICICI Bank</option>
+            <option value="State Bank of India">State Bank of India</option>
+            <option value="Axis Bank">Axis Bank</option>
+            <option value="Kotak Mahindra">Kotak Mahindra</option>
+            <option value="Yes Bank">Yes Bank</option>
+            <option value="Punjab National Bank">Punjab National Bank</option>
+            <option value="Bank of Baroda">Bank of Baroda</option>
+            <option value="IndusInd Bank">IndusInd Bank</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="pwd">Password</label>
+          <input class="input" id="pwd" type="password" placeholder="Min. 6 characters" required minlength="6">
+        </div>
+        <label class="flex items-center gap-2 text-sm" style="margin-bottom:24px;color:var(--text-secondary);">
+          <input type="checkbox" id="agreeCheck" style="width:16px;height:16px;"> I agree to CyberShield's Terms and Privacy Policy
+        </label>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" id="submitBtn">Create Account</button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <a href="login.html" id="signInLink" class="btn btn-secondary btn-block">Already have an account? Sign In</a>
+      <a href="role-select.html" class="btn btn-ghost btn-block" style="margin-top:8px;">Switch Role</a>
+
+      <p class="text-xs text-muted" style="text-align:center;margin-top:24px;">
+        By continuing you agree to CyberShield's <a href="../public/terms.html" style="color:var(--accent-strong);font-weight:600;">Terms</a> and <a href="../public/privacy.html" style="color:var(--accent-strong);font-weight:600;">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  // ── URL params ─────────────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const urlRole = params.get('role') || 'citizen';
+  const urlBank = params.get('bank') || '';
+  const dest = params.get('to') || (urlRole === 'citizen'
+    ? '../citizen/dashboard.html'
+    : `../institutional/${urlRole}/dashboard.html`);
+
+  const roleSelect = document.getElementById('role');
+  const bankField  = document.getElementById('bankField');
+  const bankSelect = document.getElementById('bankSelect');
+
+  if (roleSelect && urlRole) roleSelect.value = urlRole;
+  document.getElementById('signInLink').href = `login.html?role=${encodeURIComponent(urlRole)}&to=${encodeURIComponent(dest)}`;
+
+  function toggleBankField() {
+    const r = roleSelect.value;
+    if (r === 'source-bank' || r === 'destination-bank') {
+      bankField.style.display = 'block';
+    } else {
+      bankField.style.display = 'none';
+    }
+  }
+
+  roleSelect.addEventListener('change', toggleBankField);
+  toggleBankField();
+
+  if (urlBank && [...bankSelect.options].some(o => o.value === urlBank)) {
+    bankSelect.value = urlBank;
+  }
+
+  const orgDefaults = {
+    'citizen': '', 'source-bank': 'HDFC Bank', 'destination-bank': 'Yes Bank',
+    'telecom': 'Airtel', 'cybercrime': 'Bengaluru East Cyber Cell', 'admin': 'CyberShield HQ'
+  };
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  function showError(msg) {
+    const b = document.getElementById('errorBanner');
+    b.innerHTML = msg; b.classList.add('show');
+    document.getElementById('successBanner').classList.remove('show');
+  }
+  function showSuccess(msg) {
+    const b = document.getElementById('successBanner');
+    b.innerHTML = msg; b.classList.add('show');
+    document.getElementById('errorBanner').classList.remove('show');
+  }
+  function clearMessages() {
+    document.getElementById('errorBanner').classList.remove('show');
+    document.getElementById('successBanner').classList.remove('show');
+  }
+  function setLoading(loading) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = loading;
+    btn.innerText = loading ? 'Creating Account…' : 'Create Account';
+  }
+
+  function friendlyAuthError(err) {
+    const code = err.code || '';
+    if (code === 'auth/email-already-in-use') {
+      const loginUrl = `login.html?role=${encodeURIComponent(roleSelect.value)}&to=${encodeURIComponent(dest)}`;
+      return `This email is already registered. <a href="${loginUrl}">Sign in instead →</a>`;
+    }
+    if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
+    if (code === 'auth/weak-password') return 'Password must be at least 6 characters.';
+    if (code === 'auth/network-request-failed') return 'Network error — please check your connection.';
+    return err.message || 'An unexpected error occurred. Please try again.';
+  }
+
+  // ── Form submission ────────────────────────────────────────────────────────
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+
+    const name = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('pwd').value;
+    const selectedRole = roleSelect.value;
+    const selectedBank = (selectedRole === 'source-bank' || selectedRole === 'destination-bank') ? bankSelect.value : '';
+    const org = selectedBank || orgDefaults[selectedRole] || '';
+    const agreed = document.getElementById('agreeCheck').checked;
+
+    if (!name) { showError('Please enter your full name.'); return; }
+    if (!email) { showError('Please enter your email address.'); return; }
+    if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+    if (!agreed) { showError('Please agree to the Terms and Privacy Policy to continue.'); return; }
+
+    setLoading(true);
+
+    try {
+      await window.CS_FIREBASE.ready;
+
+      let userCredential;
+      try {
+        userCredential = await window.CS_FIREBASE.authService.signup(email, password);
+      } catch (authErr) {
+        showError(friendlyAuthError(authErr));
+        setLoading(false);
+        return;
+      }
+
+      const user = userCredential.user;
+      const token = await user.getIdToken();
+      const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+      try {
+        await fetch('http://localhost:5000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ email, name, role: selectedRole, org })
+        });
+      } catch (backendErr) {
+        console.warn('Backend unreachable, saving directly to Firestore:', backendErr.message);
+      }
+
+      let key = "citizen";
+      if (selectedRole === "source-bank") key = "sourceBank";
+      else if (selectedRole === "destination-bank") key = "destBank";
+      else if (selectedRole === "telecom") key = "telecom";
+      else if (selectedRole === "cybercrime") key = "cybercrime";
+      else if (selectedRole === "admin") key = "admin";
+
+      const profile = {
+        uid: user.uid,
+        name: name,
+        email: email,
+        initials: initials,
+        org: org,
+        role: selectedRole,
+        status: 'Active'
+      };
+
+      const stateStr = localStorage.getItem('cs_state_v5') || sessionStorage.getItem('cs_state_v5');
+      let stateObj = stateStr ? JSON.parse(stateStr) : {};
+      if (!stateObj.currentUser) {
+        stateObj.currentUser = {
+          citizen: { name: "", initials: "", email: "", phone: "", role: "Citizen Victim" },
+          sourceBank: { name: "", initials: "", org: "HDFC Bank", role: "Fraud Ops Analyst", email: "" },
+          destBank: { name: "", initials: "", org: "Yes Bank", role: "Freeze Approval Officer", email: "" },
+          telecom: { name: "", initials: "", org: "Airtel", role: "Nodal Officer", email: "" },
+          cybercrime: { name: "", initials: "", org: "Bengaluru East Cyber Cell", role: "Inspector", email: "" },
+          admin: { name: "", initials: "", org: "CyberShield HQ", role: "Platform Administrator", email: "" }
+        };
+      }
+
+      stateObj.currentUser[key] = profile;
+      localStorage.setItem('cs_state_v5', JSON.stringify(stateObj));
+      sessionStorage.setItem('cs_state_v5', JSON.stringify(stateObj));
+
+      window.location.href = dest;
+
+    } catch (err) {
+      console.error('Signup error:', err);
+      showError('Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  });
+</script>
+</body>
+</html>

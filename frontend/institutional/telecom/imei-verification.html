@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMEI Verification — Telecom — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="imei-verification">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>IMEI Verification</h2><p>Look up device history and trace linked SIMs by IMEI number.</p></div></div>
+
+      <div class="card card-pad" style="margin-bottom:var(--sp-6);">
+        <div class="flex gap-3">
+          <input class="input mono" placeholder="Enter 15-digit IMEI number…" style="flex:1;">
+          <button class="btn btn-primary">Look Up</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h4>Recent IMEI Lookups</h4></div>
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>IMEI</th><th>Case</th><th>Linked SIMs</th><th>First Seen</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono text-sm">356938•••••8213</td><td class="mono text-sm">CC-2026-08841</td><td class="text-sm">3 numbers</td><td class="text-sm text-secondary">02 Jul 2026</td><td><span class="chip chip-high">Under Review</span></td></tr>
+              <tr><td class="mono text-sm">861234•••••7790</td><td class="mono text-sm">CC-2026-08776</td><td class="text-sm">1 number</td><td class="text-sm text-secondary">28 Jun 2026</td><td><span class="chip chip-resolved">Cleared</span></td></tr>
+              <tr><td class="mono text-sm">490112•••••5502</td><td class="mono text-sm">CC-2026-08830</td><td class="text-sm">2 numbers</td><td class="text-sm text-secondary">11 Jul 2026</td><td><span class="chip chip-critical">Flagged</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>  CS_renderShell('telecom','imei-verification',{pageTitle:'IMEI Verification'});
+  const user = CS_DATA.currentUser.telecom;
+  const orgName = user && user.org ? user.org : "Airtel";
+  const orgImeis = CS_DATA.imeiRequests.filter(s => s.telecom === orgName);
+
+  const tbody = document.querySelector('tbody');
+  if (orgImeis.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+  } else {
+    tbody.innerHTML = orgImeis.map(req => `
+      <tr class="row-link" onclick="window.location.href='device-details.html?requestId=${req.id}'">
+        <td class="mono text-sm">${req.imei.slice(0,6) + "•••••" + req.imei.slice(-4)}</td>
+        <td class="mono text-sm">${req.caseId}</td>
+        <td class="text-sm">1 number</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(req.requestedOn).split(' · ')[0]}</td>
+        <td><span class="chip ${req.status === 'Completed' ? 'chip-resolved' : 'chip-critical'}">${req.status}</span></td>
+      </tr>
+    `).join('');
+  }</script>
+</body>
+</html>

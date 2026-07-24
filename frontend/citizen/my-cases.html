@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Cases — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-page="my-cases">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>My Cases</h2><p>All fraud reports you've filed with CyberShield.</p></div>
+        <div class="page-actions"><a href="report-fraud.html" class="btn btn-primary">+ Report New Fraud</a></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search by case ID…"></div>
+        <select id="statusSelect" class="select input" style="width:auto;"><option>All Statuses</option><option>Investigation</option><option>Freeze Requested</option><option>Funds Frozen</option><option>Resolved</option></select>
+        <select id="dateSelect" class="select input" style="width:auto;"><option>All Time</option><option>Last 7 days</option><option>Last 30 days</option></select>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="CS_DATA.exportToCSV ? CS_DATA.exportToCSV('cases') : CS_toast('Export complete', 'Cases exported to CSV successfully')">Export CSV</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Case ID</th><th>Amount</th><th>Channel</th><th>Filed On</th><th>Officer</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+            <tbody id="casesBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span>Showing 1–8 of 8 cases</span>
+          <div class="page-btns"><span class="page-btn is-active">1</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/petra-wallet-tracker.js"></script>
+<script>
+  CS_renderShell('citizen','my-cases',{pageTitle:'My Cases'});
+
+  const searchInput = document.getElementById('searchInput');
+  const statusSelect = document.getElementById('statusSelect');
+  const dateSelect = document.getElementById('dateSelect');
+
+  function renderCases() {
+    const query = searchInput.value.toLowerCase().trim();
+    const status = statusSelect.value;
+    const dateRange = dateSelect.value;
+    const now = new Date();
+    const myName = CS_DATA.currentUser && CS_DATA.currentUser.citizen && CS_DATA.currentUser.citizen.name;
+    let myCases;
+    if (!myName) {
+      myCases = CS_DATA.cases;
+    } else {
+      const byName = CS_DATA.cases.filter(c => c.victim === myName || c.victim === 'Citizen Victim');
+      myCases = byName.length > 0 ? byName : CS_DATA.cases;
+    }
+    const filtered = myCases.filter(c => {
+      const matchesSearch = c.id.toLowerCase().includes(query);
+      const matchesStatus = status === "All Statuses" || c.status === status;
+
+      let matchesDate = true;
+      if (dateRange === "Last 7 days") {
+        const diff = Math.ceil(Math.abs(now - new Date(c.filedOn)) / (1000 * 60 * 60 * 24));
+        matchesDate = diff <= 7;
+      } else if (dateRange === "Last 30 days") {
+        const diff = Math.ceil(Math.abs(now - new Date(c.filedOn)) / (1000 * 60 * 60 * 24));
+        matchesDate = diff <= 30;
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+
+    const body = document.getElementById('casesBody');
+    const pagination = document.querySelector('.pagination');
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="8" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      if (pagination) pagination.style.display = 'none';
+      return;
+    }
+
+    if (pagination) {
+      pagination.style.display = 'flex';
+      pagination.querySelector('span').textContent = `Showing 1–${filtered.length} of ${filtered.length} case(s)`;
+    }
+
+    body.innerHTML = filtered.map(c => `
+      <tr class="row-link" onclick="window.location.href='case-details.html?caseId=${c.id}'">
+        <td class="mono text-sm">${c.id}</td>
+        <td class="mono">${CS_DATA.fmtINR(c.amount)}</td>
+        <td>${c.channel}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(c.filedOn).split(' · ')[0]}</td>
+        <td class="text-sm">${c.officer}</td>
+        <td>${CS_priorityChip(c.priority)}</td>
+        <td>${CS_chip(c.status)}</td>
+        <td class="text-secondary">›</td>
+      </tr>
+    `).join('');
+  }
+
+  if (searchInput && statusSelect && dateSelect) {
+    searchInput.addEventListener('input', renderCases);
+    statusSelect.addEventListener('change', renderCases);
+    dateSelect.addEventListener('change', renderCases);
+  }
+
+  renderCases();
+  window.addEventListener('CS_SYNC_COMPLETE', renderCases);
+</script>
+</body>
+</html>

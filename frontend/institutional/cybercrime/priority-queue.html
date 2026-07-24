@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Priority Queue — Cyber Crime Dept. — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.queue-card{ display:flex; align-items:center; gap:16px; padding:18px 20px; border-bottom:1px solid var(--border); }
+.queue-card:last-child{ border-bottom:none; }
+.q-rank{ font-family:var(--font-mono); font-weight:700; color:var(--text-muted); font-size:13px; width:24px; }
+</style>
+</head>
+<body data-page="priority-queue">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Priority Queue</h2><p>Cases ranked by urgency — critical and high-priority first.</p></div></div>
+      <div class="card" id="queue"></div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('cybercrime','priority-queue',{pageTitle:'Priority Queue'});
+  const order = {Critical:0, High:1, Medium:2, Low:3};
+  const sorted = [...CS_DATA.cases].sort((a,b)=>order[a.priority]-order[b.priority]);
+  
+  const queue = document.getElementById('queue');
+  if (sorted.length === 0) {
+    queue.innerHTML = `
+      <div style="padding:48px 24px; text-align:center; color:var(--text-secondary);">
+        <div style="font-size:48px; margin-bottom:16px;">📋</div>
+        <h4>No cases in queue.</h4>
+        <p class="text-sm text-secondary" style="margin-top:8px;">There are no reported cases in the priority queue at this time.</p>
+      </div>
+    `;
+  } else {
+    queue.innerHTML = sorted.map((c,i)=>`
+      <div class="queue-card row-link" onclick="window.location.href='investigation-timeline.html?caseId=${c.id}'">
+        <span class="q-rank">${String(i+1).padStart(2,'0')}</span>
+        <div style="flex:1;">
+          <div class="flex items-center gap-2"><strong class="mono" style="font-size:13.5px;">${c.id}</strong>${CS_priorityChip(c.priority)}</div>
+          <div class="text-xs text-muted" style="margin-top:4px;">${c.victim} · ${CS_DATA.fmtINR(c.amount)} · ${c.tags.join(', ')}</div>
+        </div>
+        <span class="text-sm">${c.officer}</span>
+        ${CS_chip(c.status)}
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>

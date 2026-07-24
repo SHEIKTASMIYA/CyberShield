@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Logs — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="audit-logs">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Audit Logs</h2><p>Immutable record of every action taken on the platform, for evidentiary and compliance purposes.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary">Export CSV</button></div></div>
+
+      <div class="filter-bar">
+        <div class="search-box" style="width:280px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="searchInput" placeholder="Search by actor or action…"></div>
+        <select id="actorSelect" class="select input" style="width:auto;"><option>All Actors</option><option>Citizen</option><option>Bank</option><option>Officer</option><option>Admin</option><option>Telecom</option></select>
+        <input id="dateInput" class="input" type="date" style="width:auto;">
+      </div>
+
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','audit-logs',{pageTitle:'Audit Logs'});
+
+  const searchInput = document.getElementById('searchInput');
+  const actorSelect = document.getElementById('actorSelect');
+  const dateInput = document.getElementById('dateInput');
+
+  function renderLogs() {
+    const query = searchInput.value.toLowerCase().trim();
+    const actorType = actorSelect.value;
+    const dateVal = dateInput.value; // format: YYYY-MM-DD
+
+    const filtered = CS_DATA.auditLogs.filter(a => {
+      const matchesSearch = a.actor.toLowerCase().includes(query) || a.action.toLowerCase().includes(query);
+      
+      let matchesActor = true;
+      if (actorType !== "All Actors") {
+        matchesActor = a.actor.toLowerCase().includes(actorType.toLowerCase());
+      }
+
+      let matchesDate = true;
+      if (dateVal) {
+        // a.time starts with YYYY-MM-DD
+        matchesDate = a.time.startsWith(dateVal);
+      }
+
+      return matchesSearch && matchesActor && matchesDate;
+    });
+
+    const body = document.getElementById('body');
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding:24px; font-size:13.5px;">No records found.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = filtered.map(a => `
+      <tr>
+        <td class="mono text-sm">${CS_DATA.fmtDate(a.time)}</td>
+        <td class="text-sm">${a.actor}</td>
+        <td class="text-sm">${a.action}</td>
+        <td class="mono text-xs text-muted">${a.ip}</td>
+      </tr>
+    `).join('');
+  }
+
+  if (searchInput && actorSelect && dateInput) {
+    searchInput.addEventListener('input', renderLogs);
+    actorSelect.addEventListener('change', renderLogs);
+    dateInput.addEventListener('change', renderLogs);
+  }
+
+  renderLogs();
+</script>
+</body>
+</html>

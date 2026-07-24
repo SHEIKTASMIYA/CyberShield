@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telecom Portal Settings | CyberShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="settings">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head">
+        <div>
+          <h2>Telecom Portal Settings</h2>
+          <p>Configure automated Tower-dump request integration, CDR API keys, and notification routing.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="CS_toast('Settings Saved','Configuration successfully saved.')">Save Settings</button>
+        </div>
+      </div>
+
+      <div class="flex-col gap-6">
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            </span>
+            <h4>Automated Verification Rules</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>Auto SIM-Swap Alert Threshold</label>
+              <select class="select">
+                <option selected>24 Hours before incident</option>
+                <option>48 Hours before incident</option>
+                <option>72 Hours before incident</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>IMEI Blacklist Auto Sync</label>
+              <select class="select">
+                <option selected>Enabled (CEIR Gateway Sync)</option>
+                <option>Disabled (Manual Approval)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="setting-header">
+            <span class="setting-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+            </span>
+            <h4>Lawful Interception Gateway Integration</h4>
+          </div>
+          <div class="grid grid-2">
+            <div class="field">
+              <label>DOT License Node</label>
+              <input type="text" class="input" value="AIRTEL-NODE-KARNATAKA-01" readonly style="background:var(--surface-sunken);">
+            </div>
+            <div class="field">
+              <label>CDR Export Encryption Key Fingerprint</label>
+              <input type="text" class="input" value="SHA256:77a1:44b9:e120:98fc:3b10" readonly style="background:var(--surface-sunken);">
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    CS_renderShell("telecom", "settings", {pageTitle: "Settings"});
+  });
+</script>
+</body>
+</html>

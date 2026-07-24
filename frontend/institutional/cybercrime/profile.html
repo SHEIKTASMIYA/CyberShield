@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Officer Profile — Cyber Crime Dept | CyberShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="profile">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head">
+        <div>
+          <h2>Investigating Officer Profile</h2>
+          <p>Cyber Crime Department credential verification & jurisdiction clearance.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="CS_toast('Profile Saved','Officer credentials updated.')">Save Changes</button>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="grid-template-columns: 280px 1fr;">
+        <div class="card card-pad flex-col items-center text-center">
+          <span class="avatar avatar-lg" style="width:80px; height:80px; font-size:28px; margin-bottom:16px;">PN</span>
+          <h4 style="font-weight:700;">Insp. Priya Nair</h4>
+          <span class="chip chip-critical" style="margin-top:6px;">Senior Investigator</span>
+          <div class="text-xs text-muted" style="margin-top:12px;">Bengaluru East Cyber Crime Division</div>
+          <hr class="divider" style="width:100%;">
+          <div class="w-full text-left flex-col gap-2 text-xs">
+            <div class="flex justify-between">
+              <span class="text-muted">Badge Number:</span>
+              <span class="font-mono font-semibold">KA-CC-0814</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Assigned Cases:</span>
+              <span class="font-mono font-semibold text-accent">14 Active</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Recovery Rate:</span>
+              <span class="font-mono font-semibold text-success">64.2%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-col gap-5">
+          <div class="card card-pad">
+            <h4 style="margin-bottom:16px;">Department Credentials</h4>
+            <div class="grid grid-2">
+              <div class="field">
+                <label>Officer Full Name</label>
+                <input type="text" class="input" value="Priya Nair">
+              </div>
+              <div class="field">
+                <label>Rank / Designation</label>
+                <input type="text" class="input" value="Inspector of Police (Cyber Crime)">
+              </div>
+              <div class="field">
+                <label>Government Email</label>
+                <input type="email" class="input" value="p.nair@cybercrime.gov.in">
+              </div>
+              <div class="field">
+                <label>Control Room Contact</label>
+                <input type="text" class="input" value="+91 80 2294 3311">
+              </div>
+              <div class="field">
+                <label>Jurisdiction District</label>
+                <input type="text" class="input" value="Bengaluru East Urban Division" readonly style="background:var(--surface-sunken);">
+              </div>
+              <div class="field">
+                <label>Court Warrant Authorization Key</label>
+                <input type="text" class="input" value="CERT-IN-AUTH-9901" readonly style="background:var(--surface-sunken);">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    CS_renderShell("cybercrime", "profile", {pageTitle: "Officer Profile"});
+
+    const user = CS_DATA.currentUser.cybercrime;
+    if (user) {
+      document.querySelector('.avatar-lg').textContent = user.initials || "PN";
+      document.querySelector('.card-pad h4').textContent = user.name || "Priya Nair";
+      document.querySelector('.text-xs.text-muted').textContent = user.org || "Bengaluru East Cyber Crime Division";
+      
+      const inputs = document.querySelectorAll('.input');
+      if (inputs.length >= 3) {
+        inputs[0].value = user.name || "";
+        inputs[1].value = user.role || "Inspector of Police (Cyber Crime)";
+        inputs[2].value = user.email || "";
+        inputs[4].value = user.org || "Bengaluru East Cyber Crime Division";
+      }
+    }
+
+    const saveBtn = document.querySelector('.page-actions .btn-primary');
+    if (saveBtn) {
+      saveBtn.onclick = null;
+      saveBtn.addEventListener('click', () => {
+        const inputs = document.querySelectorAll('.input');
+        const name = inputs[0].value;
+        const role = inputs[1].value;
+        const email = inputs[2].value;
+        
+        CS_DATA.currentUser.cybercrime.name = name;
+        CS_DATA.currentUser.cybercrime.role = role;
+        CS_DATA.currentUser.cybercrime.email = email;
+        CS_DATA.currentUser.cybercrime.initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+        CS_DATA.saveState();
+        
+        CS_toast('Profile updated', 'Your changes have been saved.');
+        setTimeout(() => window.location.reload(), 800);
+      });
+    }
+  });
+</script>
+</body>
+</html>

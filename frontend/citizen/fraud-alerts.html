@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraud Alerts — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>.alert-card{ display:flex; gap:16px; padding:20px; border-left:4px solid var(--danger); }
+.alert-card.warn{ border-left-color:var(--warning); }
+.alert-card .ai{ width:40px; height:40px; border-radius:10px; background:var(--danger-soft); color:var(--danger); display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.alert-card.warn .ai{ background:var(--warning-soft); color:var(--amber-600); }
+</style>
+</head>
+<body data-page="fraud-alerts">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Fraud Alerts</h2><p>Security alerts related to your accounts and active cases.</p></div></div>
+
+      <div class="flex-col gap-4" id="alertsList"></div>
+
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script src="../js/petra-wallet-tracker.js"></script>
+<script>
+  CS_renderShell('citizen','fraud-alerts',{pageTitle:'Fraud Alerts'});
+
+  const alertsList = document.getElementById('alertsList');
+  if (CS_DATA.fraudAlerts.length === 0) {
+    alertsList.innerHTML = `
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">🛡️</div>
+        <h4>No fraud alerts.</h4>
+        <p class="text-sm text-secondary" style="margin-top:8px;">You have no active security or fraud alerts at this time.</p>
+      </div>
+    `;
+  } else {
+    alertsList.innerHTML = CS_DATA.fraudAlerts.map(fa => {
+      const isWarn = fa.priority !== 'Critical';
+      const icon = isWarn 
+        ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
+        : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>`;
+      const chipClass = fa.priority === 'Critical' ? 'chip-critical' : fa.priority === 'High' ? 'chip-high' : 'chip-medium';
+      
+      return `
+        <div class="card alert-card ${isWarn ? 'warn' : ''}">
+          <div class="ai">${icon}</div>
+          <div style="flex:1;">
+            <div class="flex justify-between items-center"><strong>${fa.title}</strong><span class="chip ${chipClass}">${fa.priority}</span></div>
+            <p class="text-sm text-secondary" style="margin-top:6px;">${fa.desc}</p>
+            <div class="flex gap-3" style="margin-top:12px;">
+              <button class="btn btn-sm btn-secondary" data-toast-success="Marked as reviewed" onclick="CS_DATA.markFraudAlertAsRead('${fa.id}'); this.closest('.alert-card').style.opacity=0.5; this.disabled=true;">Dismiss</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (window.CS_DATA && CS_DATA.markAllFraudAlertsAsRead) {
+    setTimeout(() => {
+      CS_DATA.markAllFraudAlertsAsRead();
+    }, 800);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case CC-2026-08841 — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>.kv{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+.kv:last-child{ border-bottom:none; } .kv span:first-child{ color:var(--text-muted); }
+.evidence-row{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.evidence-row:last-child{ border-bottom:none; }
+.ev-icon{ width:36px; height:36px; border-radius:8px; background:var(--surface-sunken); display:flex; align-items:center; justify-content:center; color:var(--text-secondary); flex:0 0 auto; }
+.recovery-step{ display:flex; gap:16px; padding:20px 0; border-bottom:1px solid var(--border); }
+.recovery-step:last-child{ border-bottom:none; }
+.rs-icon{ width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:var(--success-soft); color:var(--success); }
+.rs-icon.pending{ background:var(--surface-sunken); color:var(--text-muted); }
+</style>
+</head>
+<body data-page="case-details">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+
+      <div class="breadcrumbs"><a href="my-cases.html">My Cases</a><span class="sep">/</span>
+        <select id="caseSelector" style="background:var(--surface-sunken); color:var(--text-main); border:1px solid var(--border); border-radius:var(--r-md); padding:4px 10px; font-family:var(--font-mono); font-size:13.5px; font-weight:600; cursor:pointer; outline:none;">
+        </select>
+      </div>
+
+      <div class="page-head">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 id="caseIdTitle" class="mono" style="font-size:26px;">CC-2026-08841</h2>
+            <span id="casePriorityChip" class="chip">Critical</span>
+            <span id="caseStatusChip" class="chip">Investigation</span>
+          </div>
+          <p id="caseSubtitle">UPI Fraud · Filed 14 Jul 2026 · Assigned to Insp. Priya Nair, Bengaluru East Cyber Cell</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" data-modal-open="uploadModal">Upload Evidence</button>
+          <a href="messages.html" class="btn btn-primary">Message Officer</a>
+        </div>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Amount Reported</span><span id="statAmountReported" class="stat-value mono">₹4,85,000</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Amount Frozen</span><span id="statAmountFrozen" class="stat-value mono" style="color:var(--success);">₹4,85,000</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Freeze SLA</span><span id="statSla" class="stat-value">9h left</span></div>
+        <div class="card card-pad stat-card">
+          <span class="stat-label">Recovery Progress</span>
+          <div class="progress" style="margin-top:8px;" id="statRecoveryProgressContainer">
+            <span id="statRecoveryProgressBar" style="width:55%;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a class="tab is-active" data-tab="overview">Overview</a>
+        <a class="tab" data-tab="evidence">Evidence (4)</a>
+        <a class="tab" data-tab="timeline">Timeline</a>
+        <a class="tab" data-tab="recovery">Recovery Status</a>
+      </div>
+
+      <div class="tab-panel" id="tab-overview">
+        <div class="grid" style="grid-template-columns:2fr 1fr;">
+          <div class="card card-pad">
+            <h5 style="margin-bottom:14px;">Case Summary</h5>
+            <p id="caseSummaryText" class="text-sm text-secondary" style="line-height:1.7;">Victim received a fraudulent KYC-update call impersonating bank support; OTP was shared under pressure, and ₹4.85L was moved via three consecutive UPI hops within six minutes of the call ending.</p>
+            <hr class="divider">
+            <div id="caseMetaContainer">
+              <div class="kv"><span>Payment Channel</span><span id="metaChannel">UPI</span></div>
+              <div class="kv"><span>Source Bank</span><span id="metaSourceBank">HDFC Bank</span></div>
+              <div class="kv"><span>Destination Bank</span><span id="metaDestBank">Yes Bank</span></div>
+              <div class="kv"><span id="metaBeneficiaryLabel">Beneficiary UPI ID</span><span id="metaBeneficiaryValue" class="mono">fraud88@ybl</span></div>
+              <div class="kv"><span>Telecom Operator</span><span id="metaTelecom">Airtel</span></div>
+              <div class="kv"><span>District</span><span id="metaDistrict">Bengaluru East</span></div>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <h5 style="margin-bottom:14px;">Assigned Officer</h5>
+            <div class="flex items-center gap-3" style="margin-bottom:16px;">
+              <span id="officerAvatar" class="avatar avatar-lg">PN</span>
+              <div>
+                <strong id="officerName" style="display:block; font-size:14px;">Insp. Priya Nair</strong>
+                <span id="officerCell" class="text-xs text-muted">Bengaluru East Cyber Cell</span>
+              </div>
+            </div>
+            <div class="kv"><span>Phone</span><span id="officerPhone">1930 (toll-free)</span></div>
+            <div class="kv"><span>Email</span><span id="officerEmail" class="text-xs">cybercell.blre@gov.in</span></div>
+            <a href="messages.html" class="btn btn-secondary btn-block" style="margin-top:16px;">Send Message</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-evidence" style="display:none;">
+        <div class="card card-pad">
+          <div class="flex justify-between items-center" style="margin-bottom:8px;"><h5>Uploaded Evidence</h5><button class="btn btn-sm btn-primary" data-modal-open="uploadModal">+ Add Evidence</button></div>
+          <div id="evList"></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-timeline" style="display:none;">
+        <div class="card card-pad"><div class="timeline" id="fullTimeline"></div></div>
+      </div>
+
+      <div class="tab-panel" id="tab-recovery" style="display:none;">
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 20px;">
+          <div class="card card-pad">
+            <h5 style="margin-bottom:16px;">Recovery Steps</h5>
+            <div class="flex items-center gap-4" style="margin-bottom:20px;">
+              <div class="progress" style="flex:1;"><span id="recoveryProgressBar" style="width:55%;"></span></div>
+              <strong id="recoveryProgressText" class="text-sm">55% complete</strong>
+            </div>
+            
+            <div class="grid grid-3" style="margin-bottom:24px; gap:12px;">
+              <div class="card card-pad" style="background:var(--surface-sunken); border:none; padding:12px 16px;"><span class="stat-label" style="font-size:12px;">Frozen</span><span id="recoveryStatFrozen" class="stat-value mono" style="font-size:18px;">₹4,85,000</span></div>
+              <div class="card card-pad" style="background:var(--surface-sunken); border:none; padding:12px 16px;"><span class="stat-label" style="font-size:12px;">Released to victim</span><span id="recoveryStatReleased" class="stat-value mono" style="font-size:18px;">₹0</span></div>
+              <div class="card card-pad" style="background:var(--surface-sunken); border:none; padding:12px 16px;"><span class="stat-label" style="font-size:12px;">Expected resolution</span><span id="recoveryStatResolution" class="stat-value" style="font-size:18px; font-weight:600;">7–10 days</span></div>
+            </div>
+
+            <div id="recoveryStepsContainer">
+              <!-- Rendered Dynamically -->
+            </div>
+          </div>
+
+          <div class="card card-pad" style="align-self: start;">
+            <h5 style="margin-bottom:14px;">What you can do</h5>
+            <p class="text-sm text-secondary" style="margin-bottom:16px;">Recovery timelines depend on court/adjudication processes. You don't need to take further action right now.</p>
+            <a href="messages.html" class="btn btn-secondary btn-block" style="margin-bottom:10px;">Ask a Question</a>
+            <a href="support.html" class="btn btn-ghost btn-block">Recovery FAQ</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h4>Upload Evidence</h4>
+      <button class="btn btn-ghost btn-icon" id="evModalCloseXBtn" data-modal-close aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Validation Message -->
+      <div id="evValidationAlert" style="display:none; padding:10px 14px; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); border-radius:var(--r-md); color:var(--danger); font-size:13px; margin-bottom:14px; font-weight:500;">
+        Please select a file before uploading.
+      </div>
+
+      <!-- Error State Alert -->
+      <div id="evErrorAlert" style="display:none; padding:10px 14px; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); border-radius:var(--r-md); color:var(--danger); font-size:13px; margin-bottom:14px;">
+        <div style="font-weight:600; margin-bottom:2px;">Upload failed</div>
+        <div class="text-xs">Network error encountered. Please check your connection and retry.</div>
+      </div>
+
+      <!-- File Input & Upload Zone -->
+      <input type="file" id="evFileInput" accept=".pdf,.png,.jpg,.jpeg,.mp4,.mp3,.doc,.docx" style="display:none;">
+      
+      <div class="upload-zone" id="evUploadZone" style="border:2px dashed var(--border-strong); border-radius:var(--r-lg); padding:28px; text-align:center; background:var(--surface-sunken); cursor:pointer;">
+        <div id="evZoneInitial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px; height:36px; margin:0 auto 10px; color:var(--text-muted);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+          <div style="font-weight:600; font-size:14px; margin-bottom:4px; color:var(--text-main);">Drag files here or <span style="color:var(--accent-strong); text-decoration:underline;">Choose File</span></div>
+          <div class="text-xs text-muted">Supports PDF, PNG, JPG, JPEG, MP4, MP3, DOC, DOCX up to 25MB</div>
+        </div>
+        <div id="evZoneSelected" style="display:none;">
+          <div style="font-size:24px; margin-bottom:6px;" id="evSelectedFileIcon">📄</div>
+          <div id="evSelectedFileName" style="font-weight:600; font-size:14px; color:var(--text-main);"></div>
+          <div id="evSelectedFileSize" class="text-xs text-muted" style="margin-top:2px;"></div>
+          <button type="button" class="btn btn-xs btn-ghost" id="evRemoveFileBtn" style="margin-top:10px; color:var(--danger);">Remove File</button>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="evProgressWrap" style="display:none; margin-top:14px;">
+        <div class="flex justify-between text-xs text-muted" style="margin-bottom:4px;">
+          <span>Uploading evidence…</span>
+          <span id="evProgressPct">0%</span>
+        </div>
+        <div class="progress"><span id="evProgressBar" style="width:0%;"></span></div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Note (optional)</label>
+        <textarea class="input" id="evNoteInput" rows="2" placeholder="What does this evidence show?"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-secondary" id="evCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="evUploadSubmitBtn">Upload</button>
+      <button class="btn btn-primary" id="evRetryBtn" style="display:none;">Retry</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  CS_renderShell('citizen','case-details',{pageTitle:'Case Details'});
+
+  let selectedFileObj = null;
+  window.CS_ACTIVE_CASE_ID = "CC-2026-08841";
+
+  const evFileInput = document.getElementById('evFileInput');
+  const evUploadZone = document.getElementById('evUploadZone');
+  const evZoneInitial = document.getElementById('evZoneInitial');
+  const evZoneSelected = document.getElementById('evZoneSelected');
+  const evSelectedFileName = document.getElementById('evSelectedFileName');
+  const evSelectedFileSize = document.getElementById('evSelectedFileSize');
+  const evSelectedFileIcon = document.getElementById('evSelectedFileIcon');
+  const evRemoveFileBtn = document.getElementById('evRemoveFileBtn');
+  const evValidationAlert = document.getElementById('evValidationAlert');
+  const evErrorAlert = document.getElementById('evErrorAlert');
+  const evProgressWrap = document.getElementById('evProgressWrap');
+  const evProgressBar = document.getElementById('evProgressBar');
+  const evProgressPct = document.getElementById('evProgressPct');
+  const evNoteInput = document.getElementById('evNoteInput');
+  const evCancelBtn = document.getElementById('evCancelBtn');
+  const evUploadSubmitBtn = document.getElementById('evUploadSubmitBtn');
+  const evRetryBtn = document.getElementById('evRetryBtn');
+  const evModalCloseXBtn = document.getElementById('evModalCloseXBtn');
+
+  // Helper function to extract initials from name
+  function getInitials(name) {
+    if (!name || name === "Unassigned") return "UA";
+    const parts = name.split(' ').filter(p => !p.endsWith('.'));
+    return parts.map(p => p[0]).join('').toUpperCase().substring(0, 2);
+  }
+
+  // Dynamic Timeline Generator
+  function getTimelineForCase(c) {
+    const baseDate = new Date(c.filedOn);
+    function addMinutes(date, minutes) { return new Date(date.getTime() + minutes * 60000); }
+    function fmtTime(date) { return date.toISOString().replace('T', ' ').substring(0, 16); }
+    
+    const timeline = [
+      {
+        time: fmtTime(baseDate),
+        title: "Fraud reported by victim",
+        desc: `Citizen filed complaint via portal. Auto-flagged as ${c.priority} priority.`,
+        done: true
+      },
+      {
+        time: fmtTime(addMinutes(baseDate, 19)),
+        title: "Case assigned to officer",
+        desc: c.officer !== "Unassigned" 
+          ? `Routed to ${c.district || "Local"} Cyber Cell, assigned to ${c.officer}.`
+          : "Awaiting manual assignment to investigating officer.",
+        done: c.officer !== "Unassigned"
+      }
+    ];
+
+    const hasVerification = ["Freeze Requested", "Funds Frozen", "Investigation", "Resolved"].includes(c.status);
+    if (hasVerification) {
+      timeline.push({
+        time: fmtTime(addMinutes(baseDate, 53)),
+        title: "Source bank verified transaction",
+        desc: `${c.sourceBank} confirmed the originating transaction and details.`,
+        done: true
+      });
+    }
+
+    const hasFreezeReq = ["Freeze Requested", "Funds Frozen", "Investigation", "Resolved"].includes(c.status);
+    if (hasFreezeReq) {
+      timeline.push({
+        time: fmtTime(addMinutes(baseDate, 128)),
+        title: "Freeze request issued",
+        desc: `Freeze request generated and sent to ${c.destBank} for beneficiary account.`,
+        done: true
+      });
+    }
+
+    const isFrozen = ["Funds Frozen", "Resolved"].includes(c.status);
+    timeline.push({
+      time: isFrozen ? fmtTime(addMinutes(baseDate, 320)) : "Pending",
+      title: "Destination bank action",
+      desc: isFrozen 
+        ? `${c.destBank} placed hold on the fraudulent funds.`
+        : `${c.destBank} reviewing the freeze request under SLA.`,
+      done: isFrozen
+    });
+
+    const isResolved = c.status === "Resolved";
+    timeline.push({
+      time: isResolved ? fmtTime(addMinutes(baseDate, 1440 * 3)) : "Pending",
+      title: "Funds recovery & release",
+      desc: isResolved
+        ? `Funds released back to victim account. Case marked as Resolved.`
+        : "Awaiting final adjudication and release order.",
+      done: isResolved
+    });
+
+    return timeline;
+  }
+
+  // Dynamic Recovery Steps Generator
+  function renderRecoveryStepsHtml(c) {
+    const dateStr = new Date(c.filedOn).toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    const step1Done = !["Pending", "Under Review"].includes(c.status);
+    const step2Done = ["Investigation", "Funds Frozen", "Resolved"].includes(c.status);
+    const step3Done = ["Resolved"].includes(c.status);
+    const step4Done = ["Resolved"].includes(c.status);
+
+    return `
+      <div class="recovery-step">
+        <div class="rs-icon ${step1Done ? '' : 'pending'}">${step1Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Complaint verified by source bank</strong><p class="text-xs text-muted" style="margin-top:2px;">${c.sourceBank} confirmed the originating transaction on ${dateStr}.</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step2Done ? '' : 'pending'}">${step2Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Freeze request approved</strong><p class="text-xs text-muted" style="margin-top:2px;">${step2Done ? `${c.destBank} placed a hold on the beneficiary account.` : `Awaiting freeze approval from ${c.destBank}.`}</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step3Done ? '' : 'pending'}">${step3Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Investigation & adjudication</strong><p class="text-xs text-muted" style="margin-top:2px;">${step3Done ? 'Cyber Crime Dept. completed evidence review and authorized release.' : 'Cyber Crime Dept. reviewing evidence before authorizing release.'}</p></div>
+      </div>
+      <div class="recovery-step">
+        <div class="rs-icon ${step4Done ? '' : 'pending'}">${step4Done ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>'}</div>
+        <div><strong style="font-size:13.5px;">Funds released to victim account</strong><p class="text-xs text-muted" style="margin-top:2px;">${step4Done ? 'Funds successfully credited back to your account.' : 'Estimated 7–10 business days after adjudication.'}</p></div>
+      </div>
+    `;
+  }
+
+  function renderEvidenceList(caseId){
+    const list = document.getElementById('evList');
+    if(!list) return;
+    const caseEv = CS_DATA.evidence.filter(e => e.caseId === caseId);
+
+    if (caseEv.length === 0) {
+      list.innerHTML = `<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:13.5px;">No evidence files uploaded yet.</div>`;
+    } else {
+      list.innerHTML = caseEv.map(e=>`
+        <div class="evidence-row">
+          <div class="ev-icon">${e.type==='pdf'?'📄':e.type==='image'||e.type==='png'||e.type==='jpg'?'🖼️':e.type==='audio'||e.type==='mp3'?'🎧':e.type==='video'||e.type==='mp4'?'🎬':'📊'}</div>
+          <div style="flex:1;"><div style="font-size:13.5px; font-weight:600;">${e.name}</div><div class="text-xs text-muted">${e.size} · Uploaded by ${e.by} · ${CS_DATA.fmtDate(e.uploadedOn)}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="CS_toast('Download started','Downloading ${e.name}')">Download</button>
+        </div>`).join('');
+    }
+
+    const evTabHeader = document.querySelector('.tab[data-tab="evidence"]');
+    if(evTabHeader) evTabHeader.textContent = `Evidence (${caseEv.length})`;
+  }
+
+  function renderTimeline(c) {
+    const timeline = getTimelineForCase(c);
+    document.getElementById('fullTimeline').innerHTML = timeline.map(t=>`
+      <div class="timeline-item">
+        <div class="timeline-dot ${t.done?'done':''}">${t.done?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':''}</div>
+        <div class="timeline-time">${t.time}</div>
+        <div class="timeline-title">${t.title}</div>
+        <div class="timeline-desc">${t.desc}</div>
+      </div>`).join('');
+  }
+
+  function renderRecoveryStatus(c, amountFrozen, progressVal) {
+    document.getElementById('recoveryProgressBar').style.width = `${progressVal}%`;
+    document.getElementById('recoveryProgressText').textContent = `${progressVal}% complete`;
+    document.getElementById('recoveryStatFrozen').textContent = CS_DATA.fmtINR(amountFrozen);
+    
+    let releasedVal = 0;
+    if (c.status === "Resolved") {
+      releasedVal = c.amount;
+    }
+    document.getElementById('recoveryStatReleased').textContent = CS_DATA.fmtINR(releasedVal);
+    
+    let resolutionText = "7–10 days";
+    if (c.status === "Resolved") {
+      resolutionText = "Completed";
+    } else if (c.status === "Pending" || c.status === "Under Review") {
+      resolutionText = "TBD";
+    } else if (c.status === "Freeze Requested") {
+      resolutionText = "10-14 days";
+    }
+    document.getElementById('recoveryStatResolution').textContent = resolutionText;
+
+    const stepsContainer = document.getElementById('recoveryStepsContainer');
+    if (stepsContainer) {
+      stepsContainer.innerHTML = renderRecoveryStepsHtml(c);
+    }
+  }
+
+  function getCitizenCases() {
+    const myName = CS_DATA.currentUser && CS_DATA.currentUser.citizen && CS_DATA.currentUser.citizen.name;
+    if (!myName) {
+      // No name set yet — show all cases (first login scenario)
+      return CS_DATA.cases;
+    }
+    const filtered = CS_DATA.cases.filter(x => x.victim === myName || x.victim === 'Citizen Victim');
+    return filtered.length > 0 ? filtered : CS_DATA.cases;
+  }
+
+  function loadCaseDetails(caseId) {
+    const citizenCases = getCitizenCases();
+    // Try exact caseId match first (handles URL navigation after submit)
+    const c = (caseId ? CS_DATA.cases.find(x => x.id === caseId) : null) || citizenCases[0];
+    
+    if (!c) {
+      document.querySelector('.content').innerHTML = `
+        <div class="page-head">
+          <div>
+            <h2>Case Details</h2>
+            <p>View real-time status and submit evidence for your reports.</p>
+          </div>
+        </div>
+        <div class="card card-pad text-center text-muted" style="padding:48px 24px;">
+          <div style="font-size:48px; margin-bottom:16px;">📂</div>
+          <h4>No cases available.</h4>
+          <p style="margin-top:8px; max-width:400px; margin-left:auto; margin-right:auto;">
+            You have not filed any fraud reports yet. Once you submit a report, it will appear here with dynamic tracking.
+          </p>
+          <a href="report-fraud.html" class="btn btn-primary" style="margin-top:20px; display:inline-flex;">+ Report New Fraud</a>
+        </div>
+      `;
+      return;
+    }
+
+    window.CS_ACTIVE_CASE_ID = c.id;
+    document.getElementById('caseSelector').value = c.id;
+
+    // Header updates
+    document.getElementById('caseIdTitle').textContent = c.id;
+    
+    // Priority chip
+    const pChip = document.getElementById('casePriorityChip');
+    pChip.textContent = c.priority;
+    pChip.className = 'chip';
+    if (c.priority === 'Critical') pChip.classList.add('chip-critical');
+    else if (c.priority === 'High') pChip.classList.add('chip-high');
+    else if (c.priority === 'Medium') pChip.classList.add('chip-medium');
+    else pChip.classList.add('chip-low');
+
+    // Status chip
+    const sChip = document.getElementById('caseStatusChip');
+    sChip.textContent = c.status;
+    sChip.className = 'chip';
+    if (c.status === 'Investigation') sChip.classList.add('chip-open');
+    else if (c.status === 'Freeze Requested') sChip.classList.add('chip-progress');
+    else if (c.status === 'Funds Frozen') sChip.classList.add('chip-frozen');
+    else if (c.status === 'Resolved') sChip.classList.add('chip-resolved');
+    else sChip.classList.add('chip-neutral');
+
+    // Subtitle
+    const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+    const filedDate = new Date(c.filedOn).toLocaleDateString("en-IN", dateOptions);
+    document.getElementById('caseSubtitle').textContent = `${c.channel} Fraud · Filed ${filedDate} · Assigned to ${c.officer}`;
+
+    // Stat Cards
+    document.getElementById('statAmountReported').textContent = CS_DATA.fmtINR(c.amount);
+
+    let amountFrozen = 0;
+    if (c.status === "Funds Frozen" || c.status === "Resolved") {
+      amountFrozen = c.amount;
+    } else {
+      const approved = CS_DATA.freezeRequests.filter(f => f.caseId === c.id && f.status === "Approved");
+      amountFrozen = approved.reduce((sum, f) => sum + f.amount, 0);
+    }
+    document.getElementById('statAmountFrozen').textContent = CS_DATA.fmtINR(amountFrozen);
+
+    const slaCard = document.getElementById('statSla');
+    if (c.slaRemainingHours > 0) {
+      slaCard.textContent = `${c.slaRemainingHours}h left`;
+    } else if (c.slaRemainingHours === 0) {
+      slaCard.textContent = "Met";
+    } else {
+      slaCard.textContent = "—";
+    }
+
+    const progressMap = {
+      "Pending": 10,
+      "Under Review": 20,
+      "Freeze Requested": 35,
+      "Investigation": 55,
+      "Funds Frozen": 75,
+      "Resolved": 100
+    };
+    const progressVal = progressMap[c.status] || 50;
+    document.getElementById('statRecoveryProgressBar').style.width = `${progressVal}%`;
+
+    // Overview Tab
+    document.getElementById('caseSummaryText').textContent = c.summary;
+    document.getElementById('metaChannel').textContent = c.channel;
+    document.getElementById('metaSourceBank').textContent = c.sourceBank;
+    document.getElementById('metaDestBank').textContent = c.destBank;
+
+    const benLabel = ["UPI", "QR Fraud"].includes(c.channel) ? "Beneficiary UPI ID" : "Beneficiary Account";
+    const benValue = ["UPI", "QR Fraud"].includes(c.channel) ? c.beneficiaryUpi : c.beneficiaryAccount;
+    document.getElementById('metaBeneficiaryLabel').textContent = benLabel;
+    document.getElementById('metaBeneficiaryValue').textContent = benValue;
+    document.getElementById('metaTelecom').textContent = c.telecom;
+    document.getElementById('metaDistrict').textContent = c.district || "N/A";
+
+    // Officer details
+    const init = getInitials(c.officer);
+    document.getElementById('officerAvatar').textContent = init;
+    document.getElementById('officerName').textContent = c.officer;
+
+    let cellName = "Cyber Crime Unit";
+    let phoneVal = "1930 (toll-free)";
+    let emailVal = "cybercell.general@gov.in";
+    if (c.officer === "Insp. Priya Nair") {
+      cellName = "Bengaluru East Cyber Cell";
+      emailVal = "cybercell.blre@gov.in";
+    } else if (c.officer === "SI Rakesh Kumar") {
+      cellName = "Chennai Central Cyber Cell";
+      emailVal = "cybercell.chn@gov.in";
+    } else if (c.officer === "Unassigned") {
+      cellName = "Awaiting Assignment";
+      emailVal = "support@cybershield.gov.in";
+    } else if (c.district) {
+      cellName = `${c.district} Cyber Cell`;
+      emailVal = `cybercell.${c.district.toLowerCase().replace(/\s+/g, '')}@gov.in`;
+    }
+    document.getElementById('officerCell').textContent = cellName;
+    document.getElementById('officerPhone').textContent = phoneVal;
+    document.getElementById('officerEmail').textContent = emailVal;
+
+    // Render components
+    renderEvidenceList(c.id);
+    renderTimeline(c);
+    renderRecoveryStatus(c, amountFrozen, progressVal);
+  }
+
+  // Populate Selector
+  const selector = document.getElementById('caseSelector');
+  if (selector) {
+    selector.addEventListener('change', (e) => {
+      const caseId = e.target.value;
+      loadCaseDetails(caseId);
+      history.pushState(null, '', `?caseId=${caseId}`);
+    });
+  }
+
+  function initCaseDetails() {
+    const citizenCases = getCitizenCases();
+    
+    if (selector) {
+      if (citizenCases.length === 0) {
+        selector.style.display = 'none';
+        const sep = document.querySelector('.breadcrumbs .sep');
+        if (sep) sep.style.display = 'none';
+      } else {
+        selector.innerHTML = citizenCases.map(c => `<option value="${c.id}">${c.id}</option>`).join('');
+        selector.style.display = 'inline-block';
+      }
+    }
+
+    // Handle URL Search Params
+    const params = new URLSearchParams(window.location.search);
+    const initialCaseId = params.get('caseId') || (citizenCases[0] && citizenCases[0].id);
+    if (selector && initialCaseId) {
+      selector.value = initialCaseId;
+    }
+    loadCaseDetails(initialCaseId);
+  }
+
+  initCaseDetails();
+  window.addEventListener('CS_SYNC_COMPLETE', initCaseDetails);
+
+  // Tabs setup
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('is-active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+      tab.classList.add('is-active');
+      document.getElementById('tab-'+tab.dataset.tab).style.display='block';
+    });
+  });
+
+  function resetUploadModal(){
+    selectedFileObj = null;
+    if(evFileInput) evFileInput.value = '';
+    if(evNoteInput) evNoteInput.value = '';
+    if(evValidationAlert) evValidationAlert.style.display = 'none';
+    if(evErrorAlert) evErrorAlert.style.display = 'none';
+    if(evProgressWrap) evProgressWrap.style.display = 'none';
+    if(evProgressBar) evProgressBar.style.width = '0%';
+    if(evProgressPct) evProgressPct.textContent = '0%';
+    if(evZoneInitial) evZoneInitial.style.display = 'block';
+    if(evZoneSelected) evZoneSelected.style.display = 'none';
+    if(evUploadSubmitBtn){ evUploadSubmitBtn.style.display = 'inline-flex'; evUploadSubmitBtn.disabled = false; }
+    if(evRetryBtn) evRetryBtn.style.display = 'none';
+  }
+
+  function handleFileSelect(file){
+    if(!file) return;
+    selectedFileObj = file;
+    if(evValidationAlert) evValidationAlert.style.display = 'none';
+    if(evErrorAlert) evErrorAlert.style.display = 'none';
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const iconMap = { pdf:'📄', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', mp4:'🎬', mp3:'🎧', doc:'📝', docx:'📝' };
+    if(evSelectedFileIcon) evSelectedFileIcon.textContent = iconMap[ext] || '📄';
+    if(evSelectedFileName) evSelectedFileName.textContent = file.name;
+    
+    let sz = (file.size / 1024).toFixed(1) + ' KB';
+    if(file.size > 1024 * 1024) sz = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+    if(evSelectedFileSize) evSelectedFileSize.textContent = `${sz} · Ready for upload`;
+
+    if(evZoneInitial) evZoneInitial.style.display = 'none';
+    if(evZoneSelected) evZoneSelected.style.display = 'block';
+  }
+
+  if(evUploadZone){
+    evUploadZone.addEventListener('click', (e)=>{
+      if(e.target === evRemoveFileBtn || (evRemoveFileBtn && evRemoveFileBtn.contains(e.target))) return;
+      evFileInput.click();
+    });
+    evUploadZone.addEventListener('dragover', (e)=>{ e.preventDefault(); evUploadZone.style.borderColor = 'var(--accent-strong)'; });
+    evUploadZone.addEventListener('dragleave', ()=>{ evUploadZone.style.borderColor = 'var(--border-strong)'; });
+    evUploadZone.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      evUploadZone.style.borderColor = 'var(--border-strong)';
+      if(e.dataTransfer.files && e.dataTransfer.files[0]){
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  if(evFileInput){
+    evFileInput.addEventListener('change', (e)=>{
+      if(e.target.files && e.target.files[0]){
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+  }
+
+  if(evRemoveFileBtn){
+    evRemoveFileBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      resetUploadModal();
+    });
+  }
+
+  if(evCancelBtn){
+    evCancelBtn.addEventListener('click', ()=>{
+      resetUploadModal();
+      CS_closeModal('uploadModal');
+    });
+  }
+
+  if(evModalCloseXBtn){
+    evModalCloseXBtn.addEventListener('click', ()=>{
+      resetUploadModal();
+      CS_closeModal('uploadModal');
+    });
+  }
+
+  function startUploadProcess(){
+    if(!selectedFileObj){
+      if(evValidationAlert) evValidationAlert.style.display = 'block';
+      return;
+    }
+
+    if(evValidationAlert) evValidationAlert.style.display = 'none';
+    if(evErrorAlert) evErrorAlert.style.display = 'none';
+    if(evProgressWrap) evProgressWrap.style.display = 'block';
+    if(evUploadSubmitBtn) evUploadSubmitBtn.disabled = true;
+
+    let pct = 0;
+    const interval = setInterval(()=>{
+      pct += 25;
+      if(evProgressBar) evProgressBar.style.width = pct + '%';
+      if(evProgressPct) evProgressPct.textContent = pct + '%';
+
+      if(pct >= 100){
+        clearInterval(interval);
+        setTimeout(()=>{
+          let sz = (selectedFileObj.size / 1024).toFixed(1) + ' KB';
+          if(selectedFileObj.size > 1024 * 1024) sz = (selectedFileObj.size / (1024 * 1024)).toFixed(1) + ' MB';
+          
+          const ext = selectedFileObj.name.split('.').pop().toLowerCase();
+          const typeMap = { pdf:'pdf', png:'image', jpg:'image', jpeg:'image', mp4:'video', mp3:'audio', doc:'doc', docx:'docx' };
+
+          const newItem = {
+            id: "EV-" + Math.floor(100 + Math.random()*900),
+            caseId: window.CS_ACTIVE_CASE_ID,
+            name: selectedFileObj.name,
+            type: typeMap[ext] || 'pdf',
+            size: sz,
+            uploadedOn: new Date().toISOString(),
+            by: CS_DATA.currentUser.citizen.name || "Citizen Victim",
+            note: evNoteInput ? evNoteInput.value : ""
+          };
+
+          CS_DATA.addEvidenceItem(newItem);
+          renderEvidenceList(window.CS_ACTIVE_CASE_ID);
+          CS_toast('Evidence uploaded successfully', `Added ${selectedFileObj.name} to case ${window.CS_ACTIVE_CASE_ID}`);
+          resetUploadModal();
+          CS_closeModal('uploadModal');
+        }, 300);
+      }
+    }, 150);
+  }
+
+  if(evUploadSubmitBtn){
+    evUploadSubmitBtn.addEventListener('click', startUploadProcess);
+  }
+  if(evRetryBtn){
+    evRetryBtn.addEventListener('click', startUploadProcess);
+  }
+</script>
+</body>
+</html>

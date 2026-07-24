@@ -1,0 +1,174 @@
+/* ==========================================================================
+   CYBERSHIELD DESIGN SYSTEM — TOKENS (ENTERPRISE EDITION)
+   Ink Navy + Signal Teal + Defense Amber + Critical Red.
+   Tailored for High-Density Cyber-Crime & Banking Operations Consoles.
+   ========================================================================== */
+
+:root {
+  /* ---- Core Brand Color Scale ---- */
+  --ink-950: #050911;
+  --ink-900: #0B1220;
+  --ink-850: #10192A;
+  --ink-800: #17243B;
+  --ink-700: #1E304F;
+  --ink-600: #2C436A;
+  --ink-500: #425F90;
+  --ink-400: #6885B5;
+  --ink-300: #9BB0D4;
+  --ink-200: #C9D6ED;
+  --ink-100: #EBF0F9;
+  --ink-50:  #F6F8FD;
+
+  --teal-700: #075E59;
+  --teal-600: #0B7C75;
+  --teal-500: #0F9E94;
+  --teal-400: #29C6B8;
+  --teal-300: #6EE4D7;
+  --teal-200: #B2F4EC;
+  --teal-100: #E2FAF6;
+
+  --amber-700: #92400E;
+  --amber-600: #B45E09;
+  --amber-500: #D97706;
+  --amber-400: #F59E0B;
+  --amber-100: #FEF3C7;
+
+  --red-800: #881337;
+  --red-700: #9B1C1C;
+  --red-600: #C1272D;
+  --red-500: #DC2626;
+  --red-400: #F87171;
+  --red-100: #FEE2E2;
+
+  --green-700: #116530;
+  --green-600: #15803D;
+  --green-500: #16A34A;
+  --green-400: #4ADE80;
+  --green-100: #DCFCE7;
+
+  --blue-700: #1D4ED8;
+  --blue-600: #2563EB;
+  --blue-500: #3B82F6;
+  --blue-100: #DBEAFE;
+
+  --white: #FFFFFF;
+
+  /* ---- Semantic Surface & Text (Default Light Theme) ---- */
+  --bg:             #F5F7FC;
+  --surface:        #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #EEF2FA;
+  --surface-active: #E4EBF7;
+  --border:         #E1E7F2;
+  --border-strong:  #C5D2E8;
+  --text-primary:   #0B1220;
+  --text-secondary: #3E5276;
+  --text-muted:     #687F9E;
+  --text-inverse:   #FFFFFF;
+
+  --accent:        var(--teal-600);
+  --accent-strong: var(--teal-700);
+  --accent-soft:   var(--teal-100);
+
+  --danger:       var(--red-600);
+  --danger-soft:  var(--red-100);
+  --warning:      var(--amber-500);
+  --warning-soft: var(--amber-100);
+  --success:      var(--green-600);
+  --success-soft: var(--green-100);
+  --info:         var(--blue-600);
+  --info-soft:    var(--blue-100);
+
+  --focus-ring: 0 0 0 3px rgba(15,158,148,.35);
+
+  /* ---- Density Control System ---- */
+  --cell-pad-v: 12px;
+  --cell-pad-h: 16px;
+  --table-row-h: 46px;
+
+  /* ---- Typography Scale ---- */
+  --font-ui:   'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  --fs-2xs: 11px;   --lh-2xs: 16px;
+  --fs-xs:  12.5px; --lh-xs: 18px;
+  --fs-sm:  13.5px; --lh-sm: 20px;
+  --fs-md:  15px;   --lh-md: 22px;
+  --fs-lg:  17px;   --lh-lg: 25px;
+  --fs-xl:  20px;   --lh-xl: 27px;
+  --fs-2xl: 25px;   --lh-2xl: 31px;
+  --fs-3xl: 32px;   --lh-3xl: 38px;
+  --fs-4xl: 42px;   --lh-4xl: 47px;
+
+  /* ---- Spacing Scale (4px Base Grid) ---- */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px;
+  --sp-6:24px; --sp-7:32px; --sp-8:40px; --sp-9:48px; --sp-10:64px; --sp-11:80px;
+
+  /* ---- Corner Radii ---- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* ---- Elevation & Glow Shadows ---- */
+  --shadow-xs: 0 1px 2px rgba(11,18,32,.05);
+  --shadow-sm: 0 1px 3px rgba(11,18,32,.08), 0 1px 2px rgba(11,18,32,.04);
+  --shadow-md: 0 6px 16px rgba(11,18,32,.08), 0 2px 4px rgba(11,18,32,.04);
+  --shadow-lg: 0 16px 40px rgba(11,18,32,.14), 0 4px 10px rgba(11,18,32,.06);
+  --shadow-glow-teal: 0 0 20px rgba(15,158,148,.25);
+  --shadow-glow-red: 0 0 20px rgba(220,38,38,.25);
+  --shadow-focus: var(--focus-ring);
+
+  /* ---- Z-index Layers ---- */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+
+  /* ---- Layout Geometry ---- */
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 64px;
+  --content-max: 1440px;
+
+  --ease: cubic-bezier(.4,0,.2,1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+}
+
+/* ---- Dark Mode Tokens ---- */
+[data-theme="dark"] {
+  --bg:             var(--ink-950);
+  --surface:        var(--ink-900);
+  --surface-raised: var(--ink-850);
+  --surface-sunken: #080D18;
+  --surface-active: var(--ink-800);
+  --border:         var(--ink-700);
+  --border-strong:  var(--ink-600);
+  --text-primary:   var(--ink-50);
+  --text-secondary: var(--ink-300);
+  --text-muted:     var(--ink-400);
+  --text-inverse:   var(--ink-950);
+
+  --accent-soft:   rgba(15,158,148,.18);
+  --danger-soft:   rgba(220,38,38,.18);
+  --warning-soft:  rgba(217,119,6,.18);
+  --success-soft:  rgba(22,163,74,.18);
+  --info-soft:     rgba(37,99,235,.20);
+}
+
+/* Density Compact Override */
+[data-density="compact"] {
+  --cell-pad-v: 6px;
+  --cell-pad-h: 12px;
+  --table-row-h: 36px;
+  --fs-sm: 12.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}

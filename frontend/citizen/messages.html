@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages — Citizen Portal — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>
+.msg-shell{ display:grid; grid-template-columns:300px 1fr; height:calc(100vh - var(--topbar-h) - var(--sp-10)); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; background:var(--surface); }
+.thread-list{ border-right:1px solid var(--border); overflow-y:auto; }
+.thread-item{ padding:14px 16px; border-bottom:1px solid var(--border); cursor:pointer; }
+.thread-item.active{ background:var(--accent-soft); }
+.msg-thread{ display:flex; flex-direction:column; }
+.msg-log{ flex:1; padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
+.bubble{ max-width:60%; padding:12px 16px; border-radius:14px; font-size:13.5px; line-height:1.5; }
+.bubble.them{ background:var(--surface-sunken); align-self:flex-start; border-bottom-left-radius:4px; }
+.bubble.me{ background:var(--accent); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+.msg-input{ border-top:1px solid var(--border); padding:14px 16px; display:flex; gap:10px; }
+</style>
+</head>
+<body data-page="messages">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Messages</h2><p>Secure messaging with your assigned Cyber Crime officer.</p></div></div>
+      <div class="msg-shell">
+        <div class="thread-list"></div>
+        <div class="msg-thread">
+          <div class="msg-log" id="msgLog">
+            <!-- Dynamically populated -->
+          </div>
+          <div class="msg-input">
+            <input class="input" id="msgInput" placeholder="Type a message…" style="flex:1;">
+            <button class="btn btn-primary" onclick="sendMsg()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/data.js"></script>
+<script src="../js/shell.js"></script>
+<script src="../js/app.js"></script>
+<script>
+  CS_renderShell('citizen','messages',{pageTitle:'Messages'});
+
+  if (window.CS_DATA && CS_DATA.markAllMessagesAsRead) {
+    setTimeout(() => {
+      CS_DATA.markAllMessagesAsRead();
+    }, 800);
+  }
+
+  const citizenCases = CS_DATA.cases.filter(c => c.victim === CS_DATA.currentUser.citizen.name);
+  const activeCase = citizenCases[0];
+
+  const chatThreads = {};
+  if (activeCase && activeCase.officer !== "Unassigned") {
+    chatThreads.officer = {
+      name: activeCase.officer,
+      initials: activeCase.officer.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(),
+      subtitle: `Case ${activeCase.id} · Active`,
+      messages: [
+        { sender: "them", text: `Hello, this is ${activeCase.officer}. I have been assigned to your case ${activeCase.id}. I will review the evidence and proceed with investigation.` }
+      ]
+    };
+  }
+
+  const shell = document.querySelector('.msg-shell');
+  if (Object.keys(chatThreads).length === 0) {
+    shell.style.display = 'block';
+    shell.innerHTML = `
+      <div class="card card-pad text-center text-muted" style="padding:48px 24px; border:none;">
+        <div style="font-size:48px; margin-bottom:16px;">💬</div>
+        <h4>No messages yet.</h4>
+        <p class="text-sm text-secondary" style="margin-top:8px;">You will be able to message your assigned investigating officer once a case is reported and assigned.</p>
+      </div>
+    `;
+  } else {
+    const threadList = document.querySelector('.thread-list');
+    threadList.innerHTML = Object.keys(chatThreads).map(id => {
+      const t = chatThreads[id];
+      return `
+        <div class="thread-item" data-thread-id="${id}" onclick="switchThread('${id}')">
+          <div class="flex items-center gap-2">
+            <span class="avatar avatar-sm">${t.initials}</span>
+            <strong style="font-size:13px;">${t.name}</strong>
+          </div>
+          <div class="text-xs text-muted" style="margin-top:4px; margin-left:36px;">${t.subtitle}</div>
+        </div>
+      `;
+    }).join('');
+
+    let activeThreadId = Object.keys(chatThreads)[0];
+
+    function switchThread(threadId) {
+      activeThreadId = threadId;
+      
+      document.querySelectorAll('.thread-item').forEach(el => {
+        if (el.getAttribute('data-thread-id') === threadId) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      const log = document.getElementById('msgLog');
+      if (log) {
+        log.innerHTML = chatThreads[threadId].messages.map(m => `
+          <div class="bubble ${m.sender}">${m.text}</div>
+        `).join('');
+        log.scrollTop = log.scrollHeight;
+      }
+    }
+
+    function sendMsg(){
+      const val = document.getElementById('msgInput').value.trim();
+      if(!val) return;
+      
+      chatThreads[activeThreadId].messages.push({ sender: "me", text: val });
+      
+      const log = document.getElementById('msgLog');
+      if (log) {
+        const b = document.createElement('div');
+        b.className = 'bubble me';
+        b.textContent = val;
+        log.appendChild(b);
+        log.scrollTop = log.scrollHeight;
+      }
+      
+      document.getElementById('msgInput').value = '';
+    }
+
+    document.getElementById('msgInput').addEventListener('keydown', e => { 
+      if (e.key === 'Enter') sendMsg(); 
+    });
+
+    switchThread(activeThreadId);
+  }
+</script>
+</body>
+</html>

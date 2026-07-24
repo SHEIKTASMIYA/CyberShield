@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permissions — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<style>.perm-table td, .perm-table th{ text-align:center; }
+.perm-table td:first-child, .perm-table th:first-child{ text-align:left; }
+.check{ color:var(--success); font-weight:800; }
+.cross{ color:var(--border-strong); }
+</style>
+</head>
+<body data-page="permissions">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Permissions</h2><p>Feature access matrix by role.</p></div></div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table perm-table">
+            <thead><tr><th>Capability</th><th>Citizen</th><th>Source Bank</th><th>Dest. Bank</th><th>Telecom</th><th>Cyber Crime</th><th>Admin</th></tr></thead>
+            <tbody>
+              <tr><td>File / view own complaints</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+              <tr><td>Verify complaints</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+              <tr><td>Generate freeze requests</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+              <tr><td>Approve / reject freeze requests</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+              <tr><td>SIM / IMEI verification</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td><td class="check">✓</td></tr>
+              <tr><td>Fraud network graph</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+              <tr><td>Assign / close cases</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+              <tr><td>Manage users & institutions</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+              <tr><td>View audit logs</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>CS_renderShell('admin','permissions',{pageTitle:'Permissions'});</script>
+</body>
+</html>

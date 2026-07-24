@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform Analytics — Administrator — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body data-page="platform-analytics">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Platform Analytics</h2><p>National-level view across all districts and institutions.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary">Export PDF</button></div></div>
+
+      <div class="grid grid-4" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad stat-card"><span class="stat-label">Total Cases (YTD)</span><span class="stat-value">18,204</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Total Amount Recovered</span><span class="stat-value mono">₹42.6 Cr</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Avg. Recovery Rate</span><span class="stat-value">49%</span></div>
+        <div class="card card-pad stat-card"><span class="stat-label">Active Districts</span><span class="stat-value">64</span></div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:var(--sp-6);">
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Monthly Case Volume</h5><canvas id="c1" height="200"></canvas></div>
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Freeze Success Rate</h5><canvas id="c2" height="200"></canvas></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Fraud Categories (National)</h5><canvas id="c3" height="220"></canvas></div>
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Institution SLA Compliance</h5><canvas id="c4" height="220"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('admin','platform-analytics',{pageTitle:'Platform Analytics'});
+  
+  const totalCases = CS_DATA.cases.length;
+  const resolvedCases = CS_DATA.cases.filter(c => c.status === 'Resolved');
+  const totalResolvedAmt = resolvedCases.reduce((sum, c) => sum + c.amount, 0);
+  const uniqueDistricts = new Set(CS_DATA.cases.map(c => c.district).filter(Boolean));
+
+  document.querySelectorAll('.stat-card .stat-value')[0].textContent = totalCases;
+  document.querySelectorAll('.stat-card .stat-value')[1].textContent = totalResolvedAmt > 0 ? CS_DATA.fmtINR(totalResolvedAmt) : "—";
+  document.querySelectorAll('.stat-card .stat-value')[2].textContent = totalCases > 0 ? `${Math.round((resolvedCases.length / totalCases) * 100)}%` : "—";
+  document.querySelectorAll('.stat-card .stat-value')[3].textContent = uniqueDistricts.size || 0;
+
+  const a = CS_DATA.analytics;
+  function handleEmptyChart(canvasId, labels, values) {
+    if (!values || values.length === 0) {
+      const canvas = document.getElementById(canvasId);
+      canvas.style.display = 'none';
+      const card = canvas.closest('.card');
+      const msg = document.createElement('div');
+      msg.style.padding = '48px 24px';
+      msg.style.textAlign = 'center';
+      msg.style.color = 'var(--text-secondary)';
+      msg.innerHTML = '<p>Analytics will appear when data becomes available.</p>';
+      card.appendChild(msg);
+      return true;
+    }
+    return false;
+  }
+
+  if (!handleEmptyChart('c1', a.monthlyFrauds.labels, a.monthlyFrauds.values)) {
+    new Chart(document.getElementById('c1'), {type:'bar', data:{labels:a.monthlyFrauds.labels, datasets:[{data:a.monthlyFrauds.values, backgroundColor:'#12A79A', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+  }
+  if (!handleEmptyChart('c2', a.freezeSuccess.labels, a.freezeSuccess.values)) {
+    new Chart(document.getElementById('c2'), {type:'doughnut', data:{labels:a.freezeSuccess.labels, datasets:[{data:a.freezeSuccess.values, backgroundColor:['#16A34A','#D97706','#DC2626']}]}, options:{plugins:{legend:{position:'bottom'}}}});
+  }
+  if (!handleEmptyChart('c3', a.fraudCategories.labels, a.fraudCategories.values)) {
+    new Chart(document.getElementById('c3'), {type:'doughnut', data:{labels:a.fraudCategories.labels, datasets:[{data:a.fraudCategories.values, backgroundColor:['#0D8C82','#3CC4B6','#2A63C7','#D97706','#DC2626','#7FDCD0','#44577F']}]}, options:{plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:10}}}}}});
+  }
+  if (!handleEmptyChart('c4', a.institutionPerf.labels, a.institutionPerf.values)) {
+    new Chart(document.getElementById('c4'), {type:'bar', data:{labels:a.institutionPerf.labels, datasets:[{data:a.institutionPerf.values, backgroundColor:'#2A63C7', borderRadius:6}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}}});
+  }
+</script>
+</body>
+</html>

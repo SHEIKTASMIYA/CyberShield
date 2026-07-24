@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Profile — System Headquarters | CyberShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="profile">
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <main class="content" id="main">
+      <div class="page-head">
+        <div>
+          <h2>Platform Administrator Profile</h2>
+          <p>Super-admin security clearance & platform root management profile.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="CS_toast('Profile Saved','Super-admin profile updated.')">Save Changes</button>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="grid-template-columns: 280px 1fr;">
+        <div class="card card-pad flex-col items-center text-center">
+          <span class="avatar avatar-lg" style="width:80px; height:80px; font-size:28px; margin-bottom:16px;">SK</span>
+          <h4 style="font-weight:700;">Sunita Kulkarni</h4>
+          <span class="chip chip-critical" style="margin-top:6px;">Root Administrator</span>
+          <div class="text-xs text-muted" style="margin-top:12px;">CyberShield National Directorate HQ</div>
+          <hr class="divider" style="width:100%;">
+          <div class="w-full text-left flex-col gap-2 text-xs">
+            <div class="flex justify-between">
+              <span class="text-muted">Admin ID:</span>
+              <span class="font-mono font-semibold">ROOT-ADM-001</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted">Clearance:</span>
+              <span class="font-semibold text-danger">Level 5 (National)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-col gap-5">
+          <div class="card card-pad">
+            <h4 style="margin-bottom:16px;">Root Credentials</h4>
+            <div class="grid grid-2">
+              <div class="field">
+                <label>Admin Name</label>
+                <input type="text" class="input" value="Sunita Kulkarni">
+              </div>
+              <div class="field">
+                <label>Title</label>
+                <input type="text" class="input" value="Chief Information Security Officer & Root Admin">
+              </div>
+              <div class="field">
+                <label>Government Email</label>
+                <input type="email" class="input" value="sunita.k@cybershield.gov.in">
+              </div>
+              <div class="field">
+                <label>2FA Hardware Token Serial</label>
+                <input type="text" class="input" value="YUBI-88192-X90" readonly style="background:var(--surface-sunken);">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    CS_renderShell("admin", "profile", {pageTitle: "Admin Profile"});
+
+    const user = CS_DATA.currentUser.admin;
+    if (user) {
+      document.querySelector('.avatar-lg').textContent = user.initials || "SK";
+      document.querySelector('.card-pad h4').textContent = user.name || "Sunita Kulkarni";
+      document.querySelector('.text-xs.text-muted').textContent = user.org || "CyberShield National Directorate HQ";
+      
+      const inputs = document.querySelectorAll('.input');
+      if (inputs.length >= 3) {
+        inputs[0].value = user.name || "";
+        inputs[1].value = user.role || "Chief Information Security Officer & Root Admin";
+        inputs[2].value = user.email || "";
+      }
+    }
+
+    const saveBtn = document.querySelector('.page-actions .btn-primary');
+    if (saveBtn) {
+      saveBtn.onclick = null;
+      saveBtn.addEventListener('click', () => {
+        const inputs = document.querySelectorAll('.input');
+        const name = inputs[0].value;
+        const role = inputs[1].value;
+        const email = inputs[2].value;
+        
+        CS_DATA.currentUser.admin.name = name;
+        CS_DATA.currentUser.admin.role = role;
+        CS_DATA.currentUser.admin.email = email;
+        CS_DATA.currentUser.admin.initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+        CS_DATA.saveState();
+        
+        CS_toast('Profile updated', 'Your changes have been saved.');
+        setTimeout(() => window.location.reload(), 800);
+      });
+    }
+  });
+</script>
+</body>
+</html>

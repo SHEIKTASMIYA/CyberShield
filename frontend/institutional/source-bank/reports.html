@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports — Source Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body data-page="reports">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head"><div><h2>Reports</h2><p>Verification volume and freeze-request performance for HDFC Bank.</p></div>
+        <div class="page-actions"><button class="btn btn-secondary">Export PDF</button></div></div>
+      <div class="grid grid-2">
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Monthly Complaint Volume</h5><canvas id="c1" height="220"></canvas></div>
+        <div class="card card-pad"><h5 style="margin-bottom:16px;">Freeze Request Outcomes</h5><canvas id="c2" height="220"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('sourceBank','reports',{pageTitle:'Reports'});
+  const user = CS_DATA.currentUser.sourceBank;
+  const orgName = user && user.org ? user.org : "HDFC Bank";
+  document.querySelector('.page-head p').textContent = `Verification volume and freeze-request performance for ${orgName}.`;
+
+  const a = CS_DATA.analytics;
+  function handleEmptyChart(canvasId, labels, values) {
+    if (!values || values.length === 0) {
+      const canvas = document.getElementById(canvasId);
+      canvas.style.display = 'none';
+      const card = canvas.closest('.card');
+      const msg = document.createElement('div');
+      msg.style.padding = '48px 24px';
+      msg.style.textAlign = 'center';
+      msg.style.color = 'var(--text-secondary)';
+      msg.innerHTML = '<p>Analytics will appear when data becomes available.</p>';
+      card.appendChild(msg);
+      return true;
+    }
+    return false;
+  }
+
+  if (!handleEmptyChart('c1', a.monthlyFrauds.labels, a.monthlyFrauds.values)) {
+    new Chart(document.getElementById('c1'), {type:'bar', data:{labels:a.monthlyFrauds.labels, datasets:[{label:'Complaints', data:a.monthlyFrauds.values, backgroundColor:'#12A79A', borderRadius:6}]}, options:{plugins:{legend:{display:false}}}});
+  }
+  if (!handleEmptyChart('c2', a.freezeSuccess.labels, a.freezeSuccess.values)) {
+    new Chart(document.getElementById('c2'), {type:'doughnut', data:{labels:a.freezeSuccess.labels, datasets:[{data:a.freezeSuccess.values, backgroundColor:['#16A34A','#D97706','#DC2626']}]}, options:{plugins:{legend:{position:'bottom'}}}});
+  }
+</script>
+</body>
+</html>

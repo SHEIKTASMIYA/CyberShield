@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pending Freeze Requests — Destination Bank — CyberShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/tokens.css">
+<link rel="stylesheet" href="../../css/base.css">
+<link rel="stylesheet" href="../../css/components.css">
+</head>
+<body data-page="pending-freeze">
+<div class="app-shell">
+  <div id="shell-sidebar"></div>
+  <div class="main-col">
+    <div id="shell-topbar"></div>
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h2>Pending Freeze Requests</h2>
+          <p id="pageSubtitle">Requests from source banks awaiting your review.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap" style="border:none; border-radius:0;">
+          <table class="data-table">
+            <thead><tr><th>Request ID</th><th>Case</th><th>Source Bank</th><th>Destination Bank</th><th>Account</th><th>Amount</th><th>Requested</th><th>SLA</th><th>Status</th><th></th></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/data.js"></script>
+<script src="../../js/shell.js"></script>
+<script src="../../js/app.js"></script>
+<script>
+  CS_renderShell('destBank','pending-freeze',{pageTitle:'Pending Freeze Requests'});
+  const user = CS_DATA.currentUser.destBank;
+  const orgName = user && user.org ? user.org : "Yes Bank";
+
+  document.getElementById('pageSubtitle').textContent = `Freeze requests received by ${orgName} awaiting immediate action.`;
+
+  const pending = CS_DATA.freezeRequests.filter(f => (f.bank === orgName || f.destBank === orgName) && f.status === 'Pending');
+
+  const body = document.getElementById('body');
+  if (pending.length === 0) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="10" style="padding:40px 24px; text-align:center; color:var(--text-muted); font-size:13.5px;">
+          <div style="font-size:36px; margin-bottom:12px;">❄️</div>
+          <div style="font-weight:600; margin-bottom:6px; color:var(--text-secondary);">No pending freeze requests for ${orgName}</div>
+          <div class="text-sm">Requests sent by source banks targeting beneficiary accounts at ${orgName} will appear here.</div>
+        </td>
+      </tr>`;
+  } else {
+    body.innerHTML = pending.map(f=>`
+      <tr class="row-link" onclick="window.location.href='freeze-approval.html?requestId=${f.id}'">
+        <td class="mono text-sm">${f.id}</td>
+        <td class="mono text-sm">${f.caseId}</td>
+        <td class="text-sm">${f.sourceBank}</td>
+        <td class="text-sm"><strong>${f.bank || f.destBank || orgName}</strong></td>
+        <td class="mono text-sm">${f.account}</td>
+        <td class="mono">${CS_DATA.fmtINR(f.amount)}</td>
+        <td class="text-sm text-secondary">${CS_DATA.fmtDate(f.requestedOn).split(' · ')[0]}</td>
+        <td class="text-sm">${f.sla}</td>
+        <td>${CS_chip(f.status)}</td>
+        <td class="text-secondary">›</td>
+      </tr>`).join('');
+  }
+</script>
+</body>
+</html>
